@@ -16,7 +16,17 @@ app.get("/", (req, res) => {
   res.send("Innervex Backend is Live 🚀");
 });
 
-app.use(cors());
+app.use(cors({
+    origin: [
+        "http://localhost:5173", 
+        "https://innerve-x-np7i.vercel.app",
+        "https://innervex.vercel.app" 
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(bodyParser.json());
 
 const USERS_FILE = path.join(__dirname, 'users.json');

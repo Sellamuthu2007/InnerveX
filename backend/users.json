@@ -78,5 +78,21 @@
     "password": "2345",
     "role": "individual",
     "walletId": "0x7a6a238de3f088"
+  },
+  {
+    "id": "user_1766166824494",
+    "name": "logesh",
+    "email": "loki@gmail.com",
+    "password": "1234",
+    "role": "individual",
+    "walletId": "0x95bbf9fd55bb7"
+  },
+  {
+    "id": "user_1766166900800",
+    "name": "IIT - KGP",
+    "email": "examcell@iitkgp.net",
+    "password": "1234",
+    "role": "institution",
+    "walletId": "0xf06f183f7d6b"
   }
 ]
