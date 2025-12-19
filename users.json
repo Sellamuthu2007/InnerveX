@@ -1,82 +1,18 @@
 [
   {
-    "id": "user_1766150628752",
-    "name": "sella",
-    "email": "krssellamuthu2007@gmail.com",
+    "id": "user_1766166824494",
+    "name": "logesh",
+    "email": "loki@gmail.com",
     "password": "1234",
     "role": "individual",
-    "walletId": "0xe68245dc2f595"
+    "walletId": "0x95bbf9fd55bb7"
   },
   {
-    "id": "user_1766151495903",
-    "name": "IIT Madras",
-    "email": "examcell@iitm.net",
+    "id": "user_1766166900800",
+    "name": "IIT - KGP",
+    "email": "examcell@iitkgp.net",
     "password": "1234",
     "role": "institution",
-    "walletId": "0x11a55aa45f29a"
-  },
-  {
-    "id": "user_1766151522238",
-    "name": "IIT Bombay",
-    "email": "examcell@iitb.net",
-    "password": "1234",
-    "role": "institution",
-    "walletId": "0xe1034c2c48518"
-  },
-  {
-    "id": "user_1766151986062",
-    "name": "Amazon",
-    "email": "hr@amzon.net",
-    "password": "1234",
-    "role": "employer",
-    "walletId": "0x271143af6e5a9"
-  },
-  {
-    "id": "user_1766157405707",
-    "name": "CIT - Chennai",
-    "email": "examcell@citchennai.net",
-    "password": "1234",
-    "role": "institution",
-    "walletId": "0x605c4b865ca9c"
-  },
-  {
-    "id": "user_1766160662378",
-    "name": "sellamuthu R",
-    "email": "sellamuthur.cse2024@citchennai.net",
-    "password": "1234",
-    "role": "individual",
-    "walletId": "0x9d7cab6687fb38"
-  },
-  {
-    "id": "user_1766162366434",
-    "name": "Amazon ",
-    "email": "hr@amazonChennai.net",
-    "password": "1234",
-    "role": "employer",
-    "walletId": "0x9281ea63516768"
-  },
-  {
-    "id": "user_1766162870244",
-    "name": "senthamizhselvan S",
-    "email": "selva123@gamil.com",
-    "password": "2345",
-    "role": "individual",
-    "walletId": "0xade0b7dcad3878"
-  },
-  {
-    "id": "user_1766162910970",
-    "name": "CIT - Chennai",
-    "email": "examcellhead@citchennai.net",
-    "password": "1234",
-    "role": "institution",
-    "walletId": "0x117b325c34e0f"
-  },
-  {
-    "id": "user_1766163143957",
-    "name": "senthamizhselvan S",
-    "email": "selva123@gmail.com",
-    "password": "2345",
-    "role": "individual",
-    "walletId": "0x7a6a238de3f088"
+    "walletId": "0xf06f183f7d6b"
   }
 ]

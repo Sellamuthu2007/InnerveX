@@ -1,0 +1,14 @@
+{
+  "name": "innervex-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "cors": "^2.8.5",
+    "body-parser": "^2.2.1"
+  }
+}

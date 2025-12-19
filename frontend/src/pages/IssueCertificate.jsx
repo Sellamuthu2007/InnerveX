@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Upload, Fingerprint, FileText, X, CheckCircle2, Mail, ShieldCheck } from 'lucide-react';
 import { useStore } from '../lib/store';
+import { API_URL } from '../lib/config';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const IssueCertificate = () => {
@@ -20,7 +21,7 @@ const IssueCertificate = () => {
         if (!metadata.recipientName) return;
         
         try {
-            const res = await fetch('http://localhost:3001/api/verify-user', {
+            const res = await fetch(`${API_URL}/api/verify-user`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: metadata.recipientName })
@@ -32,7 +33,7 @@ const IssueCertificate = () => {
                 addToast(`User verified: ${data.name}`, 'success');
                 
                 // Trigger Frontend OTP Logic (Visual)
-                await fetch('http://localhost:3001/api/send-otp', {
+                await fetch(`${API_URL}/api/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: data.email })

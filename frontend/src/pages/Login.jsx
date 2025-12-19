@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useStore } from '../lib/store';
+import { API_URL } from '../lib/config';
 import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 const Login = () => {
@@ -16,7 +17,7 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3001/api/login', {
+            const res = await fetch(`${API_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

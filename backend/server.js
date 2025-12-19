@@ -14,9 +14,6 @@ const PORT = 3001;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Serve static files from the React build
-app.use(express.static(path.join(__dirname, 'dist')));
-
 const USERS_FILE = path.join(__dirname, 'users.json');
 
 // Helper to read users
@@ -114,11 +111,6 @@ app.post('/api/send-otp', (req, res) => {
     console.log(`================================\n`);
 
     res.json({ success: true, message: 'OTP sent successfully' });
-});
-
-// Handle React Routing (Catch-all)
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Use process.env.PORT for deployment
