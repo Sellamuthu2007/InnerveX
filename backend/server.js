@@ -7,9 +7,14 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+ 
 
 const app = express();
 const PORT = 3001;
+
+app.get("/", (req, res) => {
+  res.send("Innervex Backend is Live 🚀");
+});
 
 app.use(cors());
 app.use(bodyParser.json());
