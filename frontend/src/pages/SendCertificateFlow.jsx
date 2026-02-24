@@ -16,24 +16,26 @@ const SendCertificateFlow = () => {
   const [timeline, setTimeline] = useState('7 Days');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      
-      shareCertificate({
-          id: `share_${Date.now()}`,
-          certTitle: selectedCert.title,
-          studentName: name || 'Student',
-          hrEmail: email,
-          timeline: timeline,
-          date: new Date().toISOString().split('T')[0],
-          status: 'Active'
-      });
+    
+    // Calculate expiration if needed (optional)
+    let expiresAt = null;
+    if (timeline === '24 Hours') expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    else if (timeline === '7 Days') expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    else if (timeline === '30 Days') expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-      useStore.getState().addToast('Certificate shared with HR!', 'success');
+    const success = await shareCertificate({
+        certificateId: selectedCert.id,
+        recipientEmail: email,
+        expiresAt
+    });
+
+    setIsProcessing(false);
+
+    if (success) {
       navigate('/dashboard'); 
-    }, 2000);
+    }
   };
 
   return (

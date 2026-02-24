@@ -4,13 +4,21 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ShieldAlert, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useStore } from '../lib/store';
 
 const CertificateRevocation = () => {
     const [certId, setCertId] = useState('');
     const [isRevoked, setIsRevoked] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const { revokeCertificate } = useStore();
 
-    const handleRevoke = () => {
-        setIsRevoked(true);
+    const handleRevoke = async () => {
+        setIsLoading(true);
+        const success = await revokeCertificate(certId);
+        setIsLoading(false);
+        if (success) {
+            setIsRevoked(true);
+        }
     };
 
     if (isRevoked) {
@@ -60,9 +68,9 @@ const CertificateRevocation = () => {
                 <Button 
                     onClick={handleRevoke}
                     className="w-full h-14 bg-red-600 hover:bg-red-700 text-white mt-8"
-                    disabled={!certId}
+                    disabled={!certId || isLoading}
                 >
-                    Permanently Revoke
+                    {isLoading ? 'Revoking...' : 'Permanently Revoke'}
                 </Button>
             </div>
         </Layout>

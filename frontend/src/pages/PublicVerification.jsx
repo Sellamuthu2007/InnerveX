@@ -4,13 +4,27 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ScanLine, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { API_URL } from '../lib/config';
 
 const PublicVerification = () => {
     const [certId, setCertId] = useState('');
     const [result, setResult] = useState(null);
 
-    const handleVerify = () => {
-        setResult('verified'); // Mock result
+    const handleVerify = async () => {
+        setResult('loading');
+        try {
+            const res = await fetch(`${API_URL}/api/verify/${certId}`);
+            const data = await res.json();
+            
+            if (res.ok && data.valid) {
+                setResult(data.certificate);
+            } else {
+                setResult('invalid');
+            }
+        } catch (error) {
+            console.error(error);
+            setResult('error');
+        }
     };
 
     return (
@@ -49,7 +63,7 @@ const PublicVerification = () => {
                 </Button>
             </div>
 
-            {result === 'verified' && (
+            {result && result !== 'loading' && result !== 'invalid' && result !== 'error' && (
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }}
@@ -57,9 +71,27 @@ const PublicVerification = () => {
                 >
                     <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
                     <h3 className="text-xl font-bold text-green-500 mb-1">Valid Certificate</h3>
-                    <p className="text-white font-medium mb-1">Bachelor of Technology</p>
-                    <p className="text-sm text-neutral-400">Issued by IIT Madras • 2024</p>
+                    <p className="text-white font-medium mb-1">{result.title}</p>
+                    <p className="text-sm text-neutral-400">Issued by {result.issuerName} • {new Date(result.issueDate).getFullYear()}</p>
+                    <p className="text-xs text-neutral-500 mt-2 font-mono">ID: {result.id}</p>
                 </motion.div>
+            )}
+
+            {result === 'invalid' && (
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-red-900/10 border border-red-900/30 p-6 rounded-3xl text-center mt-6"
+                >
+                    <h3 className="text-xl font-bold text-red-500 mb-1">Invalid Certificate</h3>
+                    <p className="text-sm text-neutral-400">This certificate ID could not be found or verified.</p>
+                </motion.div>
+            )}
+
+            {result === 'loading' && (
+               <div className="text-center mt-6">
+                   <p className="text-neutral-500 animate-pulse">Verifying on blockchain...</p>
+               </div>
             )}
         </Layout>
     );

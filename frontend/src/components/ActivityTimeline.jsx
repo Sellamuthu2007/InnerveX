@@ -7,10 +7,11 @@ const ActivityTimeline = () => {
   const navigate = useNavigate();
   // Combine certificates and requests for a unified feed
   const { certificates, requests, name } = useStore();
-  
+
+  // DB already scopes certificates and requests to the logged-in user 
   const activities = [
-    ...certificates.filter(c => c.recipient === name).map(c => ({ ...c, type: 'received', date: c.date })),
-    ...requests.filter(r => r.recipient === name).map(r => ({ ...r, type: 'sent', date: r.date }))
+    ...certificates.map(c => ({ ...c, type: c.type || 'received', date: c.date })),
+    ...requests.map(r => ({ ...r, type: 'sent', date: r.date }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
@@ -33,7 +34,7 @@ const ActivityTimeline = () => {
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium text-white">{item.status}</p>
+              <p className={`text-sm font-medium capitalize ${item.status === 'revoked' ? 'text-red-500' : 'text-white'}`}>{item.status}</p>
               <p className="text-xs text-neutral-500">{item.date}</p>
             </div>
           </div>

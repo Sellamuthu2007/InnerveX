@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useStore } from '../lib/store';
+import { API_URL } from '../lib/config';
 import { UserPlus, User, Mail, Lock, ArrowRight, Building2, Briefcase } from 'lucide-react';
 
 const Signup = () => {
@@ -11,7 +12,7 @@ const Signup = () => {
     const [searchParams] = useSearchParams();
     const role = searchParams.get('role') || 'individual';
     
-    const { setUser, addToast } = useStore();
+    const { setUser, setToken, addToast } = useStore();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({ name: '', email: '', password: '' });
 
@@ -29,7 +30,7 @@ const Signup = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:3001/api/signup', {
+            const res = await fetch(`${API_URL}/api/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...formData, role })
@@ -38,7 +39,7 @@ const Signup = () => {
             
             if (res.ok) {
                 setUser(data.user);
-                addToast('Account created successfully', 'success');
+                setToken(data.token);  // persist JWT → survives page refresh
                 addToast('Account created successfully', 'success');
                 navigate(roleContent.redirect);
             } else {

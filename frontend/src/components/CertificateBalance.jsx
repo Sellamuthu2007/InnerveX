@@ -4,9 +4,9 @@ import { useStore } from '../lib/store';
 
 const CertificateBalance = () => {
   const { certificates, requests, name } = useStore();
-  
-  // Filter for the logged-in user
-  const myCerts = certificates.filter(c => c.recipient === name);
+
+  // API already scopes certs to logged-in user — no extra name filter needed
+  const myCerts = certificates;
   const myRequests = requests.filter(r => r.recipient === name);
 
   const verifiedCount = myCerts.filter(c => c.status === 'verified').length;

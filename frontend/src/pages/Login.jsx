@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -9,7 +9,8 @@ import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { setUser, addToast } = useStore();
+    const location = useLocation();
+    const { setUser, setToken, addToast } = useStore();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({ email: '', password: '' });
 
@@ -26,8 +27,9 @@ const Login = () => {
             
             if (res.ok) {
                 setUser(data.user);
+                setToken(data.token);   // persist JWT → survives page refresh
                 addToast('Login successful', 'success');
-                
+
                 // Role-based redirection
                 if (data.user.role === 'institution') {
                     navigate('/institution-dashboard');
@@ -93,7 +95,7 @@ const Login = () => {
             </form>
 
             <p className="text-center text-neutral-500 mt-8">
-                Don't have an account? <Link to="/signup" className="text-blue-500 font-semibold hover:underline">Sign Up</Link>
+                Don't have an account? <Link to={`/signup${location.search}`} className="text-blue-500 font-semibold hover:underline">Sign Up</Link>
             </p>
         </Layout>
     );

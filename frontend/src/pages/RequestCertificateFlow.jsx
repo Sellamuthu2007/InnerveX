@@ -14,21 +14,17 @@ const RequestCertificateFlow = () => {
     const [certType, setCertType] = useState('');
     const [status, setStatus] = useState('input'); // input, sending, success
 
-    const handleRequest = (e) => {
+    const handleRequest = async (e) => {
         e.preventDefault();
         setStatus('sending');
         
-        setTimeout(() => {
-            addRequest({
-                id: `req_${Date.now()}`,
-                title: certType,
-                institution: institution,
-                status: 'sent',
-                date: new Date().toISOString().split('T')[0]
-            });
-            setStatus('success');
-            useStore.getState().addToast('Certificate request sent successfully!', 'success');
-        }, 1500);
+        // Wait for the real API call to finish
+        await addRequest({
+            title: certType,
+            institutionName: institution
+        });
+        
+        setStatus('success');
     };
 
     if (status === 'success') {

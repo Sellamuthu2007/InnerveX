@@ -2,9 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 10 10 10;
+  }
+  .dark {
+    --background: 10 10 10;
+    --foreground: 255 255 255;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background-color: #000000;
-  color: #ffffff;
+  @apply bg-white text-neutral-900 dark:bg-black dark:text-white transition-colors duration-300;
+  font-family: 'Inter', sans-serif;
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Manrope', sans-serif;
+  }
 }
 
 @layer components {

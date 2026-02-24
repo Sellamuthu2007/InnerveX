@@ -1,16 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Layout from '../components/Layout';
 import { Briefcase, UserCheck, Search, Filter } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { useStore } from '../lib/store';
 
 const EmployerDashboard = () => {
-    const { shared } = useStore();
+    const { shared, name, fetchSharedCertificates } = useStore();
+
+    useEffect(() => {
+        fetchSharedCertificates();
+    }, [fetchSharedCertificates]);
+
     return (
         <Layout className="p-6">
             <div className="flex justify-between items-center mb-8 mt-6">
                 <div>
-                    <h1 className="font-bold text-xl">Amazon India</h1>
+                    <h1 className="font-bold text-xl">{name || 'Employer'}</h1>
                     <p className="text-xs text-neutral-400">Verified Recruiter</p>
                 </div>
                 <div className="w-10 h-10 bg-neutral-800 rounded-full flex items-center justify-center">
@@ -47,19 +52,32 @@ const EmployerDashboard = () => {
             <div className="space-y-3">
             <div className="space-y-3">
                 {shared.length > 0 ? shared.map((item) => (
-                    <div key={item.id} className="bg-surface p-4 rounded-2xl flex justify-between items-center border border-neutral-800 hover:bg-neutral-800 cursor-pointer transition-colors">
+                    <div key={item.shareId} className="bg-surface p-4 rounded-2xl flex justify-between items-center border border-neutral-800 hover:bg-neutral-800 cursor-pointer transition-colors">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-blue-900/20 text-blue-400 flex items-center justify-center font-bold text-sm border border-blue-900/30">
-                                {item.studentName.substring(0, 2).toUpperCase()}
+                                {item.recipient?.substring(0, 2).toUpperCase()}
                             </div>
                             <div>
-                                <p className="font-medium text-white">{item.studentName}</p>
-                                <p className="text-xs text-neutral-500">{item.certTitle} • {item.timeline}</p>
+                                <p className="font-medium text-white">{item.recipient}</p>
+                                <p className="text-xs text-neutral-500">{item.title} • {item.sharedBy}</p>
                             </div>
                         </div>
                         <div className="text-right">
                              <p className="text-xs text-green-500 flex items-center gap-1 justify-end"><UserCheck className="w-3 h-3" /> {item.status}</p>
-                             <p className="text-[10px] text-neutral-600">Rx: {item.date}</p>
+                             <div className="flex items-center gap-2 mt-1 justify-end">
+                                <p className="text-[10px] text-neutral-600">Rx: {item.date}</p>
+                                {item.fileUrl && (
+                                    <a 
+                                        href={item.fileUrl} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded-full no-underline"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        View File
+                                    </a>
+                                )}
+                             </div>
                         </div>
                     </div>
                 )) : (

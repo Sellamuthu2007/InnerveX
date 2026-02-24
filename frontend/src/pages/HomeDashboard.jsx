@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useStore } from '../lib/store';
 import { User, QrCode, Search, Bell, Send, Download, ScanLine } from 'lucide-react';
@@ -10,7 +10,13 @@ import { useNavigate } from 'react-router-dom';
 const HomeDashboard = () => {
   const navigate = useNavigate();
   const user = useStore(state => state);
-  
+  const { fetchMyCertificates, fetchMyRequests } = useStore();
+
+  useEffect(() => {
+    fetchMyCertificates();
+    fetchMyRequests();
+  }, [fetchMyCertificates, fetchMyRequests]);
+
   return (
     <Layout className="p-0">
       {/* Top Header */}

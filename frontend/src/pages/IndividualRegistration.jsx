@@ -5,14 +5,18 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useStore } from '../lib/store';
 import { Loader2 } from 'lucide-react';
+import { API_URL } from '../lib/config';
 
 const IndividualRegistration = () => {
   const navigate = useNavigate();
   const setUser = useStore(state => state.setUser);
+  const setToken = useStore(state => state.setToken);
+  const addToast = useStore(state => state.addToast);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     mobile: ''
   });
 
@@ -23,21 +27,41 @@ const IndividualRegistration = () => {
     setWalletId('0x' + Math.random().toString(16).substr(2, 8).toUpperCase());
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setUser({
-        ...formData,
-        walletId,
-        id: 'user_' + Date.now(),
-        role: 'individual'
+    try {
+      const response = await fetch(`${API_URL}/api/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: 'individual',
+          walletId  // send the wallet ID generated on screen
+        })
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.user);
+        setToken(data.token);  // persist JWT right after signup
+        addToast('Account created successfully!', 'success');
+        navigate('/dashboard');
+      } else {
+        addToast(data.message || 'Registration failed', 'error');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      addToast('Failed to connect to server', 'error');
+    } finally {
       setLoading(false);
-      navigate('/dashboard');
-    }, 1500);
+    }
   };
 
   return (
@@ -66,6 +90,16 @@ const IndividualRegistration = () => {
               placeholder="rahul@example.com"
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
+            />
+          </div>
+          <div>
+            <label className="text-sm text-neutral-400 ml-1 mb-1 block">Password</label>
+            <Input 
+              required
+              type="password"
+              placeholder="Enter a secure password"
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
           </div>
           <div>

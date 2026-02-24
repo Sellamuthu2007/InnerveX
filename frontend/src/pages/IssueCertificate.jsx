@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const IssueCertificate = () => {
     const navigate = useNavigate();
-    const { addToast, addCertificate, name } = useStore();
+    const { addToast, addCertificate, name, token } = useStore();
     const [step, setStep] = useState(1);
     const [file, setFile] = useState(null);
     const [metadata, setMetadata] = useState({ title: '', recipientName: '', recipientEmail: '' });
@@ -68,26 +68,67 @@ const IssueCertificate = () => {
         }
     };
 
-    const handleIssue = () => {
+    const handleIssue = async () => {
         setIsVerifying(true);
-        // Simulate Verification & Blockchain Minting
-        setTimeout(() => {
-            setIsVerifying(false);
-            
-            // Add to store
-            addCertificate({
-                id: `cert_${Date.now()}`,
-                title: metadata.title,
-                issuer: name || 'Unknown Institution',
-                recipient: metadata.recipientName,
-                date: new Date().toISOString().split('T')[0],
-                status: 'verified',
-                type: 'uploaded'
+        try {
+            // Convert file to base64 for storage
+            let fileData = null, fileName = null, fileType = null;
+            if (file) {
+                fileData = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result); // includes data:mime;base64,...
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                fileName = file.name;
+                fileType = file.type;
+            }
+
+            const res = await fetch(`${API_URL}/api/certificates`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title: metadata.title,
+                    issuerName: name || 'Unknown Institution',
+                    recipientName: metadata.recipientName,
+                    recipientEmail: metadata.recipientEmail,
+                    fileData,
+                    fileName,
+                    fileType,
+                })
             });
 
-            setStep(4);
-            addToast('Certificate minted and transferred!', 'success');
-        }, 2500);
+            const data = await res.json();
+
+            if (res.ok) {
+                const cert = data.certificate;
+                // Add to local store immediately so issuer's dashboard updates
+                addCertificate({
+                    id: cert._id,
+                    title: cert.title,
+                    issuer: cert.issuerName,
+                    recipient: cert.recipientName,
+                    date: cert.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+                    status: 'verified',
+                    type: 'uploaded',
+                    fileData: cert.fileData,
+                    fileName: cert.fileName,
+                    fileType: cert.fileType,
+                });
+                setStep(4);
+                addToast('Certificate minted and transferred!', 'success');
+            } else {
+                addToast(data.message || 'Failed to issue certificate', 'error');
+            }
+        } catch (error) {
+            console.error('Issue error:', error);
+            addToast('Failed to connect to server', 'error');
+        } finally {
+            setIsVerifying(false);
+        }
     };
     
     // ... formatAadhar ...
@@ -130,7 +171,7 @@ const IssueCertificate = () => {
                         <div className="space-y-4">
                             <label className="text-sm text-neutral-500 ml-1 block">Recipient Name</label>
                             <Input 
-                                placeholder="e.g. Rahul Sellamuthu" 
+                                placeholder="e.g. Rahul" 
                                 className="h-16 bg-neutral-900 border-neutral-800 text-center text-xl"
                                 value={metadata.recipientName}
                                 onChange={e => setMetadata({...metadata, recipientName: e.target.value})}

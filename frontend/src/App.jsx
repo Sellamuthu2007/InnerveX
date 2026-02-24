@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ToastContainer from './components/ui/Toast';
+import { useStore } from './lib/store';
+
 import LandingPage from './pages/LandingPage';
 import RoleSelection from './pages/RoleSelection';
 import IndividualRegistration from './pages/IndividualRegistration';
@@ -28,6 +30,16 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 
 function App() {
+  const theme = useStore(state => state.theme);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
   return (
     <Router>
       <ToastContainer />

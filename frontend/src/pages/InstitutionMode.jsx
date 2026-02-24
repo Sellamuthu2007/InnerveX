@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { Building2, Plus, Users, ShieldAlert, History, UserCheck, ShieldCheck, Send } from 'lucide-react';
@@ -8,11 +8,17 @@ import { useStore } from '../lib/store';
 
 const InstitutionMode = () => {
     const navigate = useNavigate();
-    const { requests, certificates, name } = useStore();
+    const { requests, certificates, name, fetchIssuedCertificates, fetchInstitutionRequests } = useStore();
     
+    // Fetch certificates and requests on load
+    useEffect(() => {
+        fetchIssuedCertificates();
+        fetchInstitutionRequests();
+    }, [fetchIssuedCertificates, fetchInstitutionRequests]);
+
     // Filter data for this institution
-    const myPendingRequests = requests.filter(r => r.institution === name);
-    const myIssuedCerts = certificates.filter(c => c.issuer === name);
+    const myPendingRequests = requests.filter(r => r.institution === name && r.status === 'sent');
+    const myIssuedCerts = certificates.filter(c => c.type === 'issued' || c.issuer === name);
 
     return (
         <Layout className="bg-neutral-950 p-6">
@@ -57,11 +63,47 @@ const InstitutionMode = () => {
                 <LinkButton onClick={() => navigate('/issue-certificate')} icon={Plus} label="Upload" color="text-blue-400" bg="bg-blue-900/20" />
                 <LinkButton onClick={() => navigate('/issue-certificate')} icon={Send} label="Send" color="text-purple-400" bg="bg-purple-900/20" />
                 <LinkButton icon={UserCheck} label="Approvals" color="text-yellow-400" bg="bg-yellow-900/20" count={myPendingRequests.length} />
-                <LinkButton icon={ShieldAlert} label="Revoke" color="text-red-400" bg="bg-red-900/20" />
+                <LinkButton onClick={() => navigate('/revoke')} icon={ShieldAlert} label="Revoke" color="text-red-400" bg="bg-red-900/20" />
+            </div>
+
+            <h2 className="font-semibold mb-4">Pending Requests</h2>
+            <div className="space-y-3 mb-8">
+                {myPendingRequests.length > 0 ? myPendingRequests.map((req) => (
+                    <div key={req.id} className="bg-surface p-4 rounded-2xl flex justify-between items-center border border-neutral-800">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-orange-900/30 flex items-center justify-center text-sm font-bold text-orange-500">
+                                {req.recipient.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                                <p className="font-medium">{req.title}</p>
+                                <p className="text-xs text-neutral-500">From: {req.recipient} • {req.date}</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button 
+                                size="sm" 
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                onClick={() => useStore.getState().updateRequestStatus(req.id, 'approved')}
+                            >
+                                Approve
+                            </Button>
+                            <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => useStore.getState().updateRequestStatus(req.id, 'rejected')}
+                            >
+                                Reject
+                            </Button>
+                        </div>
+                    </div>
+                )) : (
+                    <div className="text-center py-8 text-neutral-500">
+                        <p>No pending requests.</p>
+                    </div>
+                )}
             </div>
 
             <h2 className="font-semibold mb-4">Recent Issuances</h2>
-            <div className="space-y-3">
             <div className="space-y-3">
                 {myIssuedCerts.length > 0 ? myIssuedCerts.map((cert) => (
                     <div key={cert.id} className="bg-surface p-4 rounded-2xl flex justify-between items-center border border-neutral-800">
@@ -83,7 +125,6 @@ const InstitutionMode = () => {
                         <p>No certificates issued yet.</p>
                     </div>
                 )}
-            </div>
             </div>
         </Layout>
     );
