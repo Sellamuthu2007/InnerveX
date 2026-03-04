@@ -8,14 +8,21 @@ const createTransporter = () => {
         return null; // Will log to console instead
     }
 
+    const port = parseInt(process.env.SMTP_PORT) || 587;
+    
     return nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT) || 587,
-        secure: false,
+        port: port,
+        secure: port === 465, // true for 465, false for other ports (587)
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS
-        }
+        },
+        tls: {
+            rejectUnauthorized: false // Accept self-signed certificates
+        },
+        debug: true, // Enable debug output
+        logger: true // Log to console
     });
 };
 
@@ -35,6 +42,10 @@ export const sendEmail = async ({ to, subject, text, html }) => {
             return { success: true, messageId: 'simulated' };
         }
 
+        console.log(`\n[EMAIL] Attempting to send email to: ${to}`);
+        console.log(`[EMAIL] Subject: ${subject}`);
+        console.log(`[EMAIL] From: ${process.env.SMTP_USER}`);
+
         const info = await transporter.sendMail({
             from: `"InnerveX DigiBank" <${process.env.SMTP_USER}>`,
             to,
@@ -43,9 +54,13 @@ export const sendEmail = async ({ to, subject, text, html }) => {
             html
         });
 
+        console.log(`[EMAIL] ✓ Email sent successfully. Message ID: ${info.messageId}`);
         logger.info('Email sent successfully', { to, subject, messageId: info.messageId });
         return { success: true, messageId: info.messageId };
     } catch (error) {
+        console.error(`[EMAIL] ✗ Email sending failed:`, error.message);
+        console.error(`[EMAIL] Error code:`, error.code);
+        console.error(`[EMAIL] Full error:`, error);
         logger.error('Email sending failed', error, { to, subject });
         return { success: false, error: error.message };
     }
