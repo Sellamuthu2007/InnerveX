@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { API_URL } from './config';
+import api from './api';
 
 export const useStore = create(
   persist(
@@ -49,54 +50,41 @@ export const useStore = create(
         const token = get().token;
         if (!token) return;
         try {
-          const res = await fetch(`${API_URL}/api/certificates/my`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const data = await res.json();
-          if (res.ok) {
-            // Normalize DB certs to the shape the rest of the app expects
-            const normalized = data.certificates.map(c => ({
-              id: c._id,
-              title: c.title,
-              issuer: c.issuerName,
-              recipient: c.recipientName,
-              date: c.createdAt?.split('T')[0] || '',
-              status: c.status,
-              type: 'received',
-              fileData: c.fileData || null,
-              fileName: c.fileName || null,
-              fileType: c.fileType || null,
-            }));
-            set({ certificates: normalized });
-          }
+          const data = await api.getMyCertificates(token);
+          // Normalize DB certs to the shape the rest of the app expects
+          const normalized = data.certificates.map(c => ({
+            id: c._id,
+            title: c.title,
+            issuer: c.issuerName,
+            recipient: c.recipientName,
+            date: c.createdAt?.split('T')[0] || '',
+            status: c.status,
+            type: 'received',
+            fileData: c.fileData || null,
+            fileName: c.fileName || null,
+            fileType: c.fileType || null,
+          }));
+          set({ certificates: normalized });
         } catch (e) {
           console.error('fetchMyCertificates error:', e);
+          get().addToast(e.message || 'Failed to fetch certificates', 'error');
         }
       },
 
       // Revoke a certificate
-      revokeCertificate: async (id) => {
+      revokeCertificate: async (id, reason = '') => {
         const token = get().token;
         if (!token) return false;
         try {
-          const res = await fetch(`${API_URL}/api/certificates/${id}/revoke`, {
-            method: 'PUT',
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const data = await res.json();
-          if (res.ok) {
-            set((state) => ({
-              certificates: state.certificates.map(c => c.id === id ? { ...c, status: 'revoked' } : c)
-            }));
-            get().addToast('Certificate permanently revoked', 'success');
-            return true;
-          } else {
-            get().addToast(data.message || 'Failed to revoke certificate', 'error');
-            return false;
-          }
+          await api.revokeCertificate(id, reason, token);
+          set((state) => ({
+            certificates: state.certificates.map(c => c.id === id ? { ...c, status: 'revoked' } : c)
+          }));
+          get().addToast('Certificate permanently revoked', 'success');
+          return true;
         } catch (e) {
           console.error('revokeCertificate error:', e);
-          get().addToast('Error communicating with server', 'error');
+          get().addToast(e.message || 'Failed to revoke certificate', 'error');
           return false;
         }
       },
@@ -106,32 +94,25 @@ export const useStore = create(
         const token = get().token;
         if (!token) return;
         try {
-          const res = await fetch(`${API_URL}/api/certificates/issued`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const data = await res.json();
-          if (res.ok) {
-            // Normalize DB certs to the shape the rest of the app expects
-            const normalized = data.certificates.map(c => ({
-              id: c._id,
-              title: c.title,
-              issuer: c.issuerName,
-              recipient: c.recipientName,
-              date: c.createdAt?.split('T')[0] || '',
-              status: c.status,
-              type: 'issued', // Indicate these were issued by the user
-              fileData: c.fileData || null,
-              fileName: c.fileName || null,
-              fileType: c.fileType || null,
-            }));
-            
-            // We shouldn't overwrite received certificates. 
-            // Better to merge or maintain separate lists, but for now we'll overwrite 
-            // since a user is usually EITHER an institution OR an individual
-            set({ certificates: normalized });
-          }
+          const data = await api.getIssuedCertificates(token);
+          // Normalize DB certs to the shape the rest of the app expects
+          const normalized = data.certificates.map(c => ({
+            id: c._id,
+            title: c.title,
+            issuer: c.issuerName,
+            recipient: c.recipientName,
+            date: c.createdAt?.split('T')[0] || '',
+            status: c.status,
+            type: 'issued', // Indicate these were issued by the user
+            fileData: c.fileData || null,
+            fileName: c.fileName || null,
+            fileType: c.fileType || null,
+          }));
+          
+          set({ certificates: normalized });
         } catch (e) {
           console.error('fetchIssuedCertificates error:', e);
+          get().addToast(e.message || 'Failed to fetch issued certificates', 'error');
         }
       },
 
@@ -143,23 +124,19 @@ export const useStore = create(
         const token = get().token;
         if (!token) return;
         try {
-          const res = await fetch(`${API_URL}/api/requests/my`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const data = await res.json();
-          if (res.ok) {
-            const normalized = data.requests.map(r => ({
-              id: r._id,
-              title: r.title,
-              institution: r.institutionName,
-              recipient: r.recipientName,
-              status: r.status,
-              date: r.createdAt?.split('T')[0] || ''
-            }));
-            set({ requests: normalized });
-          }
+          const data = await api.getMyRequests(token);
+          const normalized = data.requests.map(r => ({
+            id: r._id,
+            title: r.title,
+            institution: r.institutionName,
+            recipient: r.recipientName,
+            status: r.status,
+            date: r.createdAt?.split('T')[0] || ''
+          }));
+          set({ requests: normalized });
         } catch (e) {
           console.error('fetchMyRequests error:', e);
+          get().addToast(e.message || 'Failed to fetch requests', 'error');
         }
       },
 
@@ -168,23 +145,19 @@ export const useStore = create(
         const token = get().token;
         if (!token) return;
         try {
-          const res = await fetch(`${API_URL}/api/requests/institution`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const data = await res.json();
-          if (res.ok) {
-            const normalized = data.requests.map(r => ({
-              id: r._id,
-              title: r.title,
-              institution: r.institutionName,
-              recipient: r.recipientName,
-              status: r.status,
-              date: r.createdAt?.split('T')[0] || ''
-            }));
-            set({ requests: normalized });
-          }
+          const data = await api.getInstitutionRequests(token);
+          const normalized = data.requests.map(r => ({
+            id: r._id,
+            title: r.title,
+            institution: r.institutionName,
+            recipient: r.recipientName,
+            status: r.status,
+            date: r.createdAt?.split('T')[0] || ''
+          }));
+          set({ requests: normalized });
         } catch (e) {
           console.error('fetchInstitutionRequests error:', e);
+          get().addToast(e.message || 'Failed to fetch institution requests', 'error');
         }
       },
 
@@ -192,32 +165,20 @@ export const useStore = create(
         const token = get().token;
         if (!token) return;
         try {
-          const res = await fetch(`${API_URL}/api/requests`, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}` 
-            },
-            body: JSON.stringify(requestData)
-          });
-          const data = await res.json();
-          if (res.ok) {
-            const newReq = {
-              id: data.request._id,
-              title: data.request.title,
-              institution: data.request.institutionName,
-              recipient: data.request.recipientName,
-              status: data.request.status,
-              date: data.request.createdAt?.split('T')[0] || ''
-            };
-            set((state) => ({ requests: [newReq, ...state.requests] }));
-            get().addToast('Request sent successfully', 'success');
-          } else {
-            get().addToast(data.message || 'Failed to send request', 'error');
-          }
+          const data = await api.createRequest(requestData, token);
+          const newReq = {
+            id: data.request._id,
+            title: data.request.title,
+            institution: data.request.institutionName,
+            recipient: data.request.recipientName,
+            status: data.request.status,
+            date: data.request.createdAt?.split('T')[0] || ''
+          };
+          set((state) => ({ requests: [newReq, ...state.requests] }));
+          get().addToast('Request sent successfully', 'success');
         } catch (e) {
           console.error('addRequest error:', e);
-          get().addToast('Error saving request', 'error');
+          get().addToast(e.message || 'Failed to send request', 'error');
         }
       },
 
@@ -225,23 +186,14 @@ export const useStore = create(
         const token = get().token;
         if (!token) return;
         try {
-          const res = await fetch(`${API_URL}/api/requests/${id}`, {
-            method: 'PUT',
-            headers: { 
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}` 
-            },
-            body: JSON.stringify({ status })
-          });
-          if (res.ok) {
-            set((state) => ({
-              requests: state.requests.map(r => r.id === id ? { ...r, status } : r)
-            }));
-            get().addToast(`Request ${status}`, 'success');
-          }
+          await api.updateRequestStatus(id, status, token);
+          set((state) => ({
+            requests: state.requests.map(r => r.id === id ? { ...r, status } : r)
+          }));
+          get().addToast(`Request ${status}`, 'success');
         } catch (e) {
           console.error('updateRequestStatus error:', e);
-          get().addToast('Error updating status', 'error');
+          get().addToast(e.message || 'Failed to update status', 'error');
         }
       },
 
@@ -252,15 +204,11 @@ export const useStore = create(
         const token = get().token;
         if (!token) return;
         try {
-          const res = await fetch(`${API_URL}/api/shares/my`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const data = await res.json();
-          if (res.ok) {
-            set({ shared: data.shares });
-          }
+          const data = await api.getMyShares(token);
+          set({ shared: data.shares });
         } catch (e) {
           console.error('fetchSharedCertificates error:', e);
+          get().addToast(e.message || 'Failed to fetch shared certificates', 'error');
         }
       },
 
@@ -268,25 +216,12 @@ export const useStore = create(
         const token = get().token;
         if (!token) return;
         try {
-          const res = await fetch(`${API_URL}/api/shares`, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}` 
-            },
-            body: JSON.stringify(shareData)
-          });
-          const data = await res.json();
-          if (res.ok) {
-            get().addToast('Certificate shared successfully', 'success');
-            return true;
-          } else {
-            get().addToast(data.message || 'Failed to share certificate', 'error');
-            return false;
-          }
+          await api.createShare(shareData, token);
+          get().addToast('Certificate shared successfully', 'success');
+          return true;
         } catch (e) {
           console.error('shareCertificate error:', e);
-          get().addToast('Error sharing certificate', 'error');
+          get().addToast(e.message || 'Failed to share certificate', 'error');
           return false;
         }
       },

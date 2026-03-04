@@ -15,6 +15,10 @@ import CertificateLifecycle from './pages/CertificateLifecycle';
 import InstitutionTrustRegistry from './pages/InstitutionTrustRegistry';
 import CertificateRevocation from './pages/CertificateRevocation';
 import IssueCertificate from './pages/IssueCertificate';
+import ApproveRequest from './pages/ApproveRequest';
+import VerifyCertificateRequest from './pages/VerifyCertificateRequest';
+import MyRequests from './pages/MyRequests';
+import CertificateDebug from './pages/CertificateDebug';
 
 // Placeholder or future imports
 import DualConsent from './pages/DualConsent';
@@ -28,6 +32,8 @@ import Notifications from './pages/Notifications';
 import WalletView from './pages/WalletView';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Profile from './pages/Profile';
+import SharedCertificates from './pages/SharedCertificates';
 
 function App() {
   const theme = useStore(state => state.theme);
@@ -50,6 +56,9 @@ function App() {
         <Route path="/role-select" element={<RoleSelection />} />
         <Route path="/register" element={<IndividualRegistration />} />
         <Route path="/dashboard" element={<HomeDashboard />} />
+        <Route path="/my-requests" element={<MyRequests />} />
+        <Route path="/shared-certificates" element={<SharedCertificates />} />
+        <Route path="/certificate-debug" element={<CertificateDebug />} />
         <Route path="/certificate/:id" element={<CertificateDetail />} />
         
         <Route path="/request-certificate" element={<RequestCertificateFlow />} />
@@ -60,6 +69,8 @@ function App() {
         <Route path="/lifecycle/:id" element={<CertificateLifecycle />} />
         <Route path="/trust-registry" element={<InstitutionTrustRegistry />} />
         <Route path="/revoke" element={<CertificateRevocation />} />
+        <Route path="/approve-request" element={<ApproveRequest />} />
+        <Route path="/verify-requests" element={<VerifyCertificateRequest />} />
 
         <Route path="/issue-certificate" element={<IssueCertificate />} />
         {/* Verification & Advanced Routes */}
@@ -72,6 +83,7 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/wallet" element={<WalletView />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
   );

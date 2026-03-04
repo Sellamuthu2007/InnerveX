@@ -32,7 +32,7 @@ const IndividualRegistration = () => {
     setLoading(true);
     
     try {
-      const response = await fetch(`${API_URL}/api/signup`, {
+      const response = await fetch(`${API_URL}/api/v1/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

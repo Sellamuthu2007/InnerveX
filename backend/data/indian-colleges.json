@@ -1,0 +1,162 @@
+[
+  {
+    "name": "Indian Institute of Technology Madras",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "type": "Engineering",
+    "nirf_rank": 1
+  },
+  {
+    "name": "Indian Institute of Technology Delhi",
+    "city": "New Delhi",
+    "state": "Delhi",
+    "type": "Engineering",
+    "nirf_rank": 2
+  },
+  {
+    "name": "Indian Institute of Technology Bombay",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "type": "Engineering",
+    "nirf_rank": 3
+  },
+  {
+    "name": "Indian Institute of Technology Kanpur",
+    "city": "Kanpur",
+    "state": "Uttar Pradesh",
+    "type": "Engineering",
+    "nirf_rank": 4
+  },
+  {
+    "name": "Indian Institute of Technology Kharagpur",
+    "city": "Kharagpur",
+    "state": "West Bengal",
+    "type": "Engineering",
+    "nirf_rank": 5
+  },
+  {
+    "name": "Indian Institute of Technology Roorkee",
+    "city": "Roorkee",
+    "state": "Uttarakhand",
+    "type": "Engineering",
+    "nirf_rank": 6
+  },
+  {
+    "name": "Indian Institute of Technology Guwahati",
+    "city": "Guwahati",
+    "state": "Assam",
+    "type": "Engineering",
+    "nirf_rank": 7
+  },
+  {
+    "name": "Indian Institute of Technology Hyderabad",
+    "city": "Hyderabad",
+    "state": "Telangana",
+    "type": "Engineering",
+    "nirf_rank": 8
+  },
+  {
+    "name": "National Institute of Technology Tiruchirappalli",
+    "city": "Tiruchirappalli",
+    "state": "Tamil Nadu",
+    "type": "Engineering",
+    "nirf_rank": 9
+  },
+  {
+    "name": "Indian Institute of Technology Indore",
+    "city": "Indore",
+    "state": "Madhya Pradesh",
+    "type": "Engineering",
+    "nirf_rank": 10
+  },
+  {
+    "name": "Anna University",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "type": "University"
+  },
+  {
+    "name": "Chennai Institute of Technology",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "type": "Engineering"
+  },
+  {
+    "name": "Vellore Institute of Technology",
+    "city": "Vellore",
+    "state": "Tamil Nadu",
+    "type": "Engineering"
+  },
+  {
+    "name": "SRM Institute of Science and Technology",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "type": "Engineering"
+  },
+  {
+    "name": "Amrita Vishwa Vidyapeetham",
+    "city": "Coimbatore",
+    "state": "Tamil Nadu",
+    "type": "University"
+  },
+  {
+    "name": "Manipal Institute of Technology",
+    "city": "Manipal",
+    "state": "Karnataka",
+    "type": "Engineering"
+  },
+  {
+    "name": "BITS Pilani",
+    "city": "Pilani",
+    "state": "Rajasthan",
+    "type": "Engineering"
+  },
+  {
+    "name": "Delhi Technological University",
+    "city": "New Delhi",
+    "state": "Delhi",
+    "type": "Engineering"
+  },
+  {
+    "name": "Jadavpur University",
+    "city": "Kolkata",
+    "state": "West Bengal",
+    "type": "University"
+  },
+  {
+    "name": "University of Delhi",
+    "city": "New Delhi",
+    "state": "Delhi",
+    "type": "University"
+  },
+  {
+    "name": "Jawaharlal Nehru University",
+    "city": "New Delhi",
+    "state": "Delhi",
+    "type": "University"
+  },
+  {
+    "name": "Banaras Hindu University",
+    "city": "Varanasi",
+    "state": "Uttar Pradesh",
+    "type": "University"
+  },
+  {
+    "name": "Aligarh Muslim University",
+    "city": "Aligarh",
+    "state": "Uttar Pradesh",
+    "type": "University"
+  },
+  {
+    "name": "Saveetha Institute of Medical and Technical Sciences",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "type": "Medical"
+  },
+  {
+    "name": "All India Institute of Medical Sciences Delhi",
+    "city": "New Delhi",
+    "state": "Delhi",
+    "type": "Medical"
+  }
+]

@@ -21,7 +21,7 @@ const IssueCertificate = () => {
         if (!metadata.recipientName) return;
         
         try {
-            const res = await fetch(`${API_URL}/api/verify-user`, {
+            const res = await fetch(`${API_URL}/api/v1/users/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: metadata.recipientName })
@@ -33,7 +33,7 @@ const IssueCertificate = () => {
                 addToast(`User verified: ${data.name}`, 'success');
                 
                 // Trigger Frontend OTP Logic (Visual)
-                await fetch(`${API_URL}/api/send-otp`, {
+                await fetch(`${API_URL}/api/v1/otp/send`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: data.email })
@@ -50,13 +50,33 @@ const IssueCertificate = () => {
         }
     };
 
-    const handleVerifyOtp = () => {
-        if (otp !== '123456') { 
-            addToast('Invalid OTP', 'error');
+    const handleVerifyOtp = async () => {
+        if (!otp.trim()) {
+            addToast('Please enter OTP', 'error');
             return;
         }
-        addToast('Identity Verified Successfully', 'success');
-        setStep(3);
+
+        try {
+            const res = await fetch(`${API_URL}/api/v1/otp/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: metadata.recipientEmail, 
+                    otp: otp.trim() 
+                })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                addToast('Identity Verified Successfully', 'success');
+                setStep(3);
+            } else {
+                addToast(data.message || 'Invalid OTP', 'error');
+            }
+        } catch (error) {
+            addToast('Error verifying OTP', 'error');
+            console.error('OTP verification error:', error);
+        }
     };
 
     const handleFileDrop = (e) => {
@@ -84,7 +104,7 @@ const IssueCertificate = () => {
                 fileType = file.type;
             }
 
-            const res = await fetch(`${API_URL}/api/certificates`, {
+            const res = await fetch(`${API_URL}/api/v1/certificates`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

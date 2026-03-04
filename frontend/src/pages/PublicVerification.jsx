@@ -13,7 +13,7 @@ const PublicVerification = () => {
     const handleVerify = async () => {
         setResult('loading');
         try {
-            const res = await fetch(`${API_URL}/api/verify/${certId}`);
+            const res = await fetch(`${API_URL}/api/v1/certificates/verify/${certId}`);
             const data = await res.json();
             
             if (res.ok && data.valid) {
