@@ -16,7 +16,15 @@ const ActivityTimeline = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold ml-1">Recent Activity</h3>
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold ml-1">Recent Activity</h3>
+        <button 
+          onClick={() => navigate('/my-certificates')}
+          className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+        >
+          View All Certificates →
+        </button>
+      </div>
       <div className="space-y-2">
         {activities.map((item, idx) => (
           <div 

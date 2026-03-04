@@ -91,6 +91,27 @@ const HomeDashboard = () => {
             />
          </div>
 
+         {/* My Certificates Section */}
+         <div className="mb-6">
+           <div className="flex justify-between items-center mb-4">
+             <h2 className="font-semibold text-lg">My Certificates</h2>
+             <Button 
+               size="sm" 
+               variant="ghost"
+               onClick={() => navigate('/my-certificates')}
+               className="text-blue-400 hover:text-blue-300"
+             >
+               View All
+             </Button>
+           </div>
+           <Button 
+             onClick={() => navigate('/my-certificates')}
+             className="w-full h-12 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white"
+           >
+             View My Certificates
+           </Button>
+         </div>
+
          {/* My Requests Section */}
          <div className="mb-6">
            <div className="flex justify-between items-center mb-4">

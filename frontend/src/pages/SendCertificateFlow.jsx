@@ -4,7 +4,8 @@ import Layout from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useStore } from '../lib/store';
-import { Search, CheckCircle2, User, Fingerprint, Mail, Clock, Hash, Copy, Shield, ArrowLeft } from 'lucide-react';
+import { API_URL } from '../lib/config';
+import { Search, CheckCircle2, User, Fingerprint, Mail, Clock, Hash, Copy, Shield, ArrowLeft, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SendCertificateFlow = () => {
@@ -69,28 +70,50 @@ const SendCertificateFlow = () => {
   }, [certificates, shareableCertificates, loading]);
 
   const handleSend = async () => {
-    setIsProcessing(true);
-    
-    // Calculate expiration
-    let expiresAt = null;
-    if (timeline === '24 Hours') expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    else if (timeline === '7 Days') expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    else if (timeline === '30 Days') expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    try {
+      setIsProcessing(true);
+      
+      console.log('🚀 Starting certificate share...');
+      console.log('Selected Certificate:', selectedCert);
+      console.log('Recipient Email:', email);
+      console.log('Timeline:', timeline);
+      
+      // Calculate expiration
+      let expiresAt = null;
+      if (timeline === '24 Hours') expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      else if (timeline === '7 Days') expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      else if (timeline === '30 Days') expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    const success = await shareCertificate({
-        certificateId: selectedCert.id,
-        recipientEmail: email,
-        expiresAt
-    });
+      console.log('Expires At:', expiresAt);
 
-    setIsProcessing(false);
+      const result = await shareCertificate({
+          certificateId: selectedCert.id,
+          recipientEmail: email,
+          expiresAt
+      });
 
-    if (success) {
-      // Generate share link with certificate hash
-      const link = `${window.location.origin}/verify-public?cert=${selectedCert.id}`;
-      setShareLink(link);
-      setShareSuccess(true);
-      setStep(4);
+      console.log('✅ Share Result:', result);
+      console.log('🔍 Share Token:', result?.share?.shareToken);
+      console.log('🔍 Share URL:', result?.share?.shareUrl);
+
+      if (result && result.share) {
+        // Use share URL from backend response
+        const finalShareLink = result.share.shareUrl || `${window.location.origin}/shared-view/${result.share.shareToken}`;
+        console.log('🔗 Final Share Link:', finalShareLink);
+        setShareLink(finalShareLink);
+        setShareSuccess(true);
+        setStep(4);
+      } else {
+        console.error('❌ No share data in result:', result);
+        addToast('Failed to share certificate', 'error');
+      }
+    } catch (error) {
+      console.error('💥 Error in handleSend:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      addToast(error.message || 'Failed to share certificate', 'error');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -383,15 +406,23 @@ const SendCertificateFlow = () => {
               </p>
             </div>
 
+            {/* Email Confirmation */}
+            <div className="bg-green-900/20 border border-green-800 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-green-400" />
+                <div className="flex-1">
+                  <p className="font-medium text-green-400 text-sm">Email Sent!</p>
+                  <p className="text-xs text-neutral-400">{email}</p>
+                </div>
+                <CheckCircle2 className="w-5 h-5 text-green-400" />
+              </div>
+            </div>
+
             {/* Share Details */}
             <div className="bg-neutral-900 rounded-2xl border border-neutral-800 p-5 space-y-4">
               <div>
                 <p className="text-xs text-neutral-500 mb-2">Shared Certificate</p>
                 <p className="font-semibold">{selectedCert?.title}</p>
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-2">Recipient</p>
-                <p className="font-semibold">{email}</p>
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-2">Valid Until</p>
@@ -403,43 +434,104 @@ const SendCertificateFlow = () => {
               </div>
             </div>
 
-            {/* Share Link */}
-            <div className="bg-blue-900/20 border border-blue-800 rounded-xl p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Hash className="w-4 h-4 text-blue-400" />
-                <p className="text-sm font-semibold text-blue-400">Verification Link</p>
+            {/* Share Link with Copy */}
+            <div>
+              <label className="text-sm text-neutral-400 mb-2 block">Secure Share Link</label>
+              <div className="flex gap-2">
+                <Input
+                  value={shareLink}
+                  readOnly
+                  className="bg-neutral-900 border-neutral-800 text-xs font-mono"
+                />
+                <Button
+                  onClick={() => copyToClipboard(shareLink)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
               </div>
-              <div className="bg-neutral-950 rounded-lg p-3 mb-3">
-                <p className="text-xs font-mono text-neutral-400 break-all">{shareLink}</p>
+            </div>
+
+            {/* QR Code */}
+            {shareLink && (
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 text-center">
+                <p className="text-sm text-neutral-400 mb-4">Scan to Share</p>
+                <div className="bg-white p-4 rounded-lg inline-block">
+                  <img 
+                    src={`${API_URL}/api/v1/qr/generate?data=${encodeURIComponent(shareLink)}&size=200`}
+                    alt="QR Code"
+                    className="w-48 h-48 mx-auto"
+                    onError={(e) => {
+                      console.error('QR Code failed to load:', e);
+                      e.target.style.display = 'none';
+                      e.target.parentElement.innerHTML = '<p class="text-neutral-500 p-8">QR Code unavailable</p>';
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-neutral-500 mt-4">Point camera at QR code to open link</p>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full rounded-full border-blue-800 text-blue-400 hover:bg-blue-900/20"
-                onClick={() => copyToClipboard(shareLink)}
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Link
-              </Button>
+            )}
+
+            {/* Quick Share Buttons */}
+            <div>
+              <label className="text-sm text-neutral-400 mb-3 block">Share via</label>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={() => {
+                    const message = `Check out my certificate: ${selectedCert?.title}\n\n${shareLink}`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                  }}
+                  className="bg-green-600 hover:bg-green-700 h-12"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  WhatsApp
+                </Button>
+                <Button
+                  onClick={() => {
+                    // SMS share (works on mobile)
+                    const message = `Check out my certificate: ${selectedCert?.title}\n${shareLink}`;
+                    window.location.href = `sms:?body=${encodeURIComponent(message)}`;
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 h-12"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  SMS
+                </Button>
+              </div>
+            </div>
+
+            {/* Security Info */}
+            <div className="bg-yellow-900/20 border border-yellow-800 rounded-lg p-4">
+              <div className="flex gap-3">
+                <Shield className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-yellow-400 mb-1">Security Notice</p>
+                  <p className="text-xs text-neutral-400">
+                    This link is unique and can only be accessed by the recipient. 
+                    All access is logged and can be revoked at any time.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Actions */}
-            <div className="space-y-3">
+            <div className="space-y-3 pt-2">
               <Button 
-                className="w-full h-14 rounded-full" 
+                className="w-full h-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" 
                 onClick={() => navigate('/dashboard')}
               >
                 Back to Dashboard
               </Button>
               <Button 
                 variant="outline"
-                className="w-full h-12 rounded-full" 
+                className="w-full h-12 rounded-full border-neutral-800 hover:bg-neutral-800" 
                 onClick={() => {
                   setStep(1);
                   setSelectedCert(null);
                   setEmail('');
                   setTimeline('7 Days');
                   setShareSuccess(false);
+                  setShareLink('');
                 }}
               >
                 Share Another Certificate
