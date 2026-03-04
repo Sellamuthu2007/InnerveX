@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useStore } from '../lib/store';
-import { User, QrCode, Search, Bell, Send, Download, ScanLine } from 'lucide-react';
+import { User, QrCode, Search, Bell, Send, Download, ScanLine, LogOut, Share2 } from 'lucide-react';
 import CertificateBalance from '../components/CertificateBalance';
 import ActivityTimeline from '../components/ActivityTimeline';
 import { Button } from '../components/ui/button';
@@ -10,12 +10,17 @@ import { useNavigate } from 'react-router-dom';
 const HomeDashboard = () => {
   const navigate = useNavigate();
   const user = useStore(state => state);
-  const { fetchMyCertificates, fetchMyRequests } = useStore();
+  const { fetchMyCertificates, fetchMyRequests, logout } = useStore();
 
   useEffect(() => {
     fetchMyCertificates();
     fetchMyRequests();
   }, [fetchMyCertificates, fetchMyRequests]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <Layout className="p-0">
@@ -37,6 +42,9 @@ const HomeDashboard = () => {
              </Button>
              <Button onClick={() => navigate('/notifications')} size="icon" variant="ghost" className="rounded-full bg-neutral-900/50">
                <Bell className="w-5 h-5" />
+             </Button>
+             <Button onClick={handleLogout} size="icon" variant="ghost" className="rounded-full bg-neutral-900/50 hover:bg-red-900/30">
+               <LogOut className="w-5 h-5 text-red-400" />
              </Button>
           </div>
         </div>
@@ -79,8 +87,29 @@ const HomeDashboard = () => {
                icon={User} 
                label="Profile" 
                color="text-yellow-500" 
-               onClick={() => {}} 
+               onClick={() => navigate('/profile')} 
             />
+         </div>
+
+         {/* My Requests Section */}
+         <div className="mb-6">
+           <div className="flex justify-between items-center mb-4">
+             <h2 className="font-semibold text-lg">My Requests</h2>
+             <Button 
+               size="sm" 
+               variant="ghost"
+               onClick={() => navigate('/my-requests')}
+               className="text-blue-400 hover:text-blue-300"
+             >
+               View All
+             </Button>
+           </div>
+           <Button 
+             onClick={() => navigate('/my-requests')}
+             className="w-full h-12 rounded-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white"
+           >
+             Track Certificate Requests
+           </Button>
          </div>
 
          <ActivityTimeline />

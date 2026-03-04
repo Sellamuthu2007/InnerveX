@@ -18,7 +18,7 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/login`, {
+            const res = await fetch(`${API_URL}/api/v1/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -39,7 +39,12 @@ const Login = () => {
                     navigate('/dashboard');
                 }
             } else {
-                addToast(data.message, 'error');
+                // Show validation errors if present
+                if (data.errors && data.errors.length > 0) {
+                    data.errors.forEach(err => addToast(err.message, 'error'));
+                } else {
+                    addToast(data.message || 'Login failed', 'error');
+                }
             }
         } catch (error) {
             addToast('Server connection failed. Ensure server is running.', 'error');
