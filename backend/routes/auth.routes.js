@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import User from '../models/User.js';
 import { validate } from '../middleware/validate.js';
 import { signupSchema, loginSchema } from '../validators/auth.validator.js';
@@ -41,8 +42,8 @@ router.post('/signup', authLimiter, validate(signupSchema), asyncHandler(async (
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Generate wallet ID if not provided
-    const finalWalletId = walletId || ('0x' + Math.random().toString(16).substr(2, 40));
+    // Generate wallet ID if not provided (valid Ethereum address format: 0x + 40 hex chars)
+    const finalWalletId = walletId || ('0x' + crypto.randomBytes(20).toString('hex'));
 
     const newUser = await User.create({
         name: req.body.name, // Use validated name for institutions

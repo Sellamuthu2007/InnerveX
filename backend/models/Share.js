@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const ShareSchema = new mongoose.Schema({
     certificateId: { 
@@ -32,11 +33,24 @@ const ShareSchema = new mongoose.Schema({
         index: true
     },
     expiresAt: { type: Date },
+    shareToken: {
+        type: String,
+        unique: true,
+        required: true,
+        index: true
+    },
     accessCount: {
         type: Number,
         default: 0
     },
     lastAccessedAt: { type: Date },
+    accessLog: [{
+        accessedAt: { type: Date, default: Date.now },
+        ipAddress: String,
+        userAgent: String,
+        country: String,
+        city: String
+    }],
     isRevoked: {
         type: Boolean,
         default: false
@@ -51,6 +65,14 @@ ShareSchema.index({ recipientEmail: 1, createdAt: -1 });
 ShareSchema.index({ sharedById: 1, createdAt: -1 });
 ShareSchema.index({ certificateId: 1, recipientEmail: 1 });
 ShareSchema.index({ expiresAt: 1 });
+// shareToken index already defined in schema
+
+// Generate unique share token before save
+ShareSchema.pre('save', async function() {
+    if (this.isNew && !this.shareToken) {
+        this.shareToken = crypto.randomBytes(32).toString('hex');
+    }
+});
 
 // Virtual for checking if share is expired
 ShareSchema.virtual('isExpired').get(function() {

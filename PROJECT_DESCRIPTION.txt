@@ -1,0 +1,1035 @@
+======================================================================================
+                            INNERVEX DIGIBANK PROJECT
+                     Digital Certificate Management Platform
+======================================================================================
+
+PROJECT OVERVIEW
+----------------
+InnerveX DigiBank is a comprehensive blockchain-based digital certificate management 
+platform that enables institutions to issue, manage, and verify digital certificates 
+with tamper-proof security. The system provides a complete ecosystem for certificate 
+lifecycle management, from issuance to verification, sharing, and revocation.
+
+The platform serves as a "Digital Certificate Bank" where educational institutions, 
+employers, and regulatory bodies can securely manage digital credentials, while 
+individuals can store, share, and prove ownership of their certificates.
+
+
+======================================================================================
+CORE FEATURES
+======================================================================================
+
+1. DIGITAL CERTIFICATE ISSUANCE
+   - Institutions can issue digital certificates to students/recipients
+   - Support for PDF, PNG, JPEG certificate uploads
+   - Automatic certificate hashing using SHA-256 for tamper detection
+   - Blockchain anchoring for immutability (simulated blockchain)
+   - Email notifications sent to recipients upon issuance
+   - QR code generation for quick verification
+   - Certificate metadata support (expiry dates, custom fields)
+
+2. CERTIFICATE REQUEST SYSTEM
+   - Individuals can request certificates from institutions
+   - Institution dashboard to approve/reject requests
+   - Workflow management for certificate requests
+   - Rejection reason tracking
+   - Email notifications for request status updates
+
+3. CERTIFICATE SHARING
+   - Secure certificate sharing via unique tokens
+   - Time-limited access to shared certificates
+   - Access count tracking and audit logs
+   - Email sharing with recipient verification
+   - IP address and user agent tracking for security
+   - Shareable link generation for third-party verification
+
+4. BLOCKCHAIN INTEGRATION (SIMULATED)
+   - Certificate anchoring to blockchain ledger
+   - Transaction hash generation for each certificate
+   - Block number tracking
+   - Gas usage simulation
+   - Wallet address management for issuers
+   - Support for multiple networks (Polygon, Ethereum, BSC)
+   - Explorer URL generation for blockchain transactions
+
+5. CERTIFICATE VERIFICATION
+   - Public verification via certificate ID or QR code
+   - Real-time verification status checking
+   - Certificate hash validation
+   - Blockchain transaction verification
+   - Issuer and recipient validation
+   - Expiry date checking
+
+6. CERTIFICATE REVOCATION
+   - Institutions can revoke issued certificates
+   - Revocation reason documentation
+   - Blockchain transaction for revocation
+   - Email notifications for revoked certificates
+   - Audit trail for revocation actions
+
+7. MULTI-ROLE USER SYSTEM
+   - Individual: Receive, view, and share certificates
+   - Institution: Issue, manage, and revoke certificates
+   - Employer: Verify employee certificates
+   - Regulatory: Oversight and compliance monitoring
+
+8. ADVANCED FEATURES
+   - Dual-consent verification for sensitive certificates
+   - User reputation system based on certificate history
+   - Fraud detection and management
+   - Institution trust registry
+   - Certificate lifecycle tracking
+   - Activity timeline for all actions
+   - Certificate balance dashboard
+
+9. NOTIFICATION SYSTEM
+   - Real-time notifications for certificate events
+   - Email notifications for important actions
+   - In-app notification center
+   - Notification preferences management
+
+10. SECURITY FEATURES
+    - JWT-based authentication
+    - Password hashing with bcryptjs
+    - Rate limiting to prevent abuse
+    - CORS configuration for API security
+    - NoSQL injection prevention
+    - Input sanitization and validation
+    - File upload validation
+    - Helmet.js security headers
+
+
+======================================================================================
+TECHNICAL ARCHITECTURE
+======================================================================================
+
+TECHNOLOGY STACK
+----------------
+
+Backend (Node.js/Express):
+- Runtime: Node.js (ES Modules)
+- Framework: Express.js 5.2.1
+- Database: MongoDB with Mongoose ODM
+- Authentication: JWT (JSON Web Tokens)
+- Security: Helmet, CORS, Express Rate Limit, Express Mongo Sanitize
+- Email: Nodemailer
+- File Processing: Base64 encoding, QR code generation
+- Validation: Joi schema validation
+- Logging: Morgan + Winston (custom logger)
+
+Frontend (React):
+- Framework: React 18.2.0
+- Build Tool: Vite
+- Routing: React Router DOM 6.30.2
+- State Management: Zustand 5.0.9
+- Styling: Tailwind CSS 3.4.1
+- UI Components: Radix UI (Headless components)
+- Animations: Framer Motion 11.18.2
+- Icons: Lucide React
+
+Database (MongoDB):
+- Document-based NoSQL database
+- Collections: Users, Certificates, Requests, Shares, BlockchainLedger, 
+  Notifications, AuditLogs
+- Indexes for performance optimization
+- Data validation at schema level
+
+Deployment:
+- Docker containerization for backend and frontend
+- Docker Compose for multi-container orchestration
+- MongoDB container with health checks
+- Nginx for frontend serving in production
+- Environment-based configuration
+
+
+======================================================================================
+DATABASE MODELS
+======================================================================================
+
+1. USER MODEL (User.js)
+   Fields:
+   - name: User's full name (required)
+   - email: Unique email address (required, indexed)
+   - password: Hashed password (bcrypt, min 8 chars)
+   - role: [individual, institution, employer, regulatory]
+   - walletId: Blockchain wallet identifier (unique)
+   - isVerified: Account verification status
+   - isActive: Account active status
+   - certificatesIssued: Counter for issued certificates
+   - certificatesReceived: Counter for received certificates
+   - lastLogin: Last login timestamp
+   - timestamps: createdAt, updatedAt
+
+2. CERTIFICATE MODEL (Certificate.js)
+   Fields:
+   - title: Certificate title/name
+   - issuerName: Name of issuing institution
+   - issuerId: Reference to User (institution)
+   - recipientName: Name of recipient
+   - recipientEmail: Recipient email address
+   - recipientId: Reference to User (recipient)
+   - status: [verified, pending, revoked]
+   - fileData: Base64 encoded certificate file
+   - fileName: Original file name
+   - fileType: MIME type [pdf, png, jpeg, jpg]
+   - fileSize: File size in bytes
+   - certificateHash: SHA-256 hash for tamper detection
+   - revocationReason: Reason if revoked
+   - revokedAt: Revocation timestamp
+   - revokedBy: Reference to User who revoked
+   - expiresAt: Certificate expiry date
+   - metadata: Additional custom fields (Map)
+   - timestamps: createdAt, updatedAt
+
+3. REQUEST MODEL (Request.js)
+   Fields:
+   - title: Requested certificate title
+   - institutionName: Target institution name
+   - institutionId: Reference to User (institution)
+   - recipientName: Requester name
+   - recipientEmail: Requester email
+   - recipientId: Reference to User (requester)
+   - status: [sent, approved, rejected]
+   - rejectionReason: Reason if rejected
+   - processedAt: Processing timestamp
+   - processedBy: Reference to User who processed
+   - timestamps: createdAt, updatedAt
+
+4. SHARE MODEL (Share.js)
+   Fields:
+   - certificateId: Reference to Certificate
+   - recipientEmail: Email of person certificate is shared with
+   - recipientId: Reference to User (if registered)
+   - sharedByEmail: Email of person sharing
+   - sharedById: Reference to User (sharer)
+   - shareToken: Unique token for access (UUID)
+   - expiresAt: Share link expiry date
+   - accessCount: Number of times accessed
+   - lastAccessedAt: Last access timestamp
+   - accessLog: Array of access records (IP, user agent, timestamp)
+   - timestamps: createdAt, updatedAt
+
+5. BLOCKCHAIN LEDGER MODEL (BlockchainLedger.js)
+   Fields:
+   - certificateId: Reference to Certificate
+   - certificateHash: SHA-256 hash
+   - txHash: Transaction hash (simulated, 0x + 64 hex chars)
+   - blockNumber: Block number in blockchain
+   - issuerWallet: Wallet address (0x + 40 hex chars)
+   - network: [Polygon Mainnet, Ethereum Mainnet, BSC Mainnet]
+   - status: [PENDING, CONFIRMED, FAILED]
+   - gasUsed: Gas consumed (21000-500000)
+   - anchoredAt: Anchoring timestamp
+   - revoked: Revocation status
+   - revocationTxHash: Revocation transaction hash
+   - revokedAt: Revocation timestamp
+   - timestamps: createdAt, updatedAt
+
+6. NOTIFICATION MODEL (Notification.js)
+   Fields:
+   - userId: Reference to User
+   - title: Notification title
+   - message: Notification content
+   - type: [info, success, warning, error]
+   - read: Read status
+   - link: Optional action link
+   - timestamps: createdAt, updatedAt
+
+7. AUDIT LOG MODEL (AuditLog.js)
+   Fields:
+   - userId: Reference to User performing action
+   - action: Action performed
+   - entityType: Type of entity affected
+   - entityId: ID of affected entity
+   - details: Additional action details
+   - ipAddress: User's IP address
+   - userAgent: User's browser/client info
+   - timestamps: createdAt
+
+
+======================================================================================
+API ENDPOINTS
+======================================================================================
+
+BASE URL: http://localhost:3001/api/v1
+
+AUTHENTICATION ROUTES (/api/v1/auth)
+-------------------------------------
+POST   /signup              - Register new user
+POST   /login               - User login (returns JWT)
+GET    /me                  - Get current user profile (protected)
+POST   /logout              - User logout
+
+USER ROUTES (/api/v1/users)
+---------------------------
+GET    /                    - Get all users (admin)
+GET    /:id                 - Get user by ID
+PUT    /:id                 - Update user
+DELETE /:id                 - Delete user
+POST   /verify              - Verify user account
+
+CERTIFICATE ROUTES (/api/v1/certificates)
+-----------------------------------------
+POST   /                    - Issue new certificate (institution only)
+GET    /my                  - Get certificates for logged-in user
+GET    /issued              - Get certificates issued by institution
+GET    /received            - Get certificates received by user
+GET    /:id                 - Get certificate by ID
+PUT    /:id/revoke          - Revoke certificate (institution only)
+GET    /verify/:id          - Public verification of certificate
+POST   /upload              - Upload certificate file
+GET    /download/:id        - Download certificate file
+GET    /qr/:id              - Generate QR code for certificate
+
+REQUEST ROUTES (/api/v1/requests)
+---------------------------------
+POST   /                    - Create new certificate request
+GET    /my                  - Get requests created by user
+GET    /institution         - Get requests for institution
+GET    /:id                 - Get request by ID
+PUT    /:id                 - Update request (approve/reject)
+DELETE /:id                 - Delete request
+
+SHARE ROUTES (/api/v1/shares)
+-----------------------------
+POST   /                    - Create new certificate share
+GET    /my                  - Get shares created by user
+GET    /received            - Get shares received by user
+GET    /:token              - Access shared certificate by token
+PUT    /:id                 - Update share
+DELETE /:id                 - Delete share
+
+BLOCKCHAIN ROUTES (/api/v1/blockchain)
+--------------------------------------
+POST   /anchor/:id          - Anchor certificate to blockchain
+GET    /verify/:id          - Verify blockchain record
+GET    /ledger/:id          - Get blockchain ledger entry
+POST   /revoke/:id          - Record revocation on blockchain
+
+NOTIFICATION ROUTES (/api/v1/notifications)
+-------------------------------------------
+GET    /                    - Get user notifications
+PUT    /:id/read            - Mark notification as read
+PUT    /read-all            - Mark all notifications as read
+DELETE /:id                 - Delete notification
+
+COLLEGE ROUTES (/api/v1/colleges)
+---------------------------------
+GET    /                    - Get list of colleges/institutions
+GET    /search              - Search colleges by name
+
+OTP ROUTES (/api/v1/otp)
+------------------------
+POST   /send                - Send OTP to email
+POST   /verify              - Verify OTP
+
+QR CODE ROUTES (/api/v1/qr)
+---------------------------
+GET    /:id                 - Generate QR code for certificate
+POST   /scan                - Scan and verify QR code
+
+
+======================================================================================
+FRONTEND PAGES/ROUTES
+======================================================================================
+
+PUBLIC PAGES
+------------
+/                           - Landing page with feature overview
+/login                      - User login page
+/signup                     - User registration page
+/role-select                - Role selection during signup
+/verify-public              - Public certificate verification
+
+INDIVIDUAL USER PAGES
+---------------------
+/dashboard                  - User home dashboard
+/my-certificates            - View all owned certificates
+/my-requests                - View certificate requests
+/shared-certificates        - View shared certificates
+/request-certificate        - Request new certificate
+/certificate/:id            - View certificate details
+/shared-view/:token         - View shared certificate (public)
+/profile                    - User profile management
+/settings                   - Account settings
+/notifications              - Notification center
+/wallet                     - Digital wallet view
+
+INSTITUTION PAGES
+-----------------
+/institution-dashboard      - Institution dashboard
+/issue-certificate          - Issue new certificate
+/approve-request            - Approve certificate requests
+/verify-requests            - Verify pending requests
+/revoke                     - Certificate revocation interface
+/lifecycle/:id              - Certificate lifecycle view
+/trust-registry             - Institution trust registry
+
+EMPLOYER PAGES
+--------------
+/employer-dashboard         - Employer dashboard for verification
+
+ADVANCED FEATURES
+-----------------
+/dual-consent               - Dual-consent verification
+/reputation                 - User reputation system
+/fraud-management           - Fraud detection and management
+/regulatory                 - Regulatory oversight view
+/certificate-debug          - Certificate debugging tool
+
+UTILITY PAGES
+-------------
+/send-certificate           - Send/share certificate flow
+
+
+======================================================================================
+KEY SERVICES AND UTILITIES
+======================================================================================
+
+1. BLOCKCHAIN SERVICE (blockchainService.js)
+   - Simulates blockchain interactions
+   - Generates certificate hashes (SHA-256)
+   - Creates transaction hashes and wallet addresses
+   - Anchors certificates to simulated blockchain
+   - Tracks gas usage and block numbers
+   - Handles revocation transactions
+   - Generates blockchain explorer URLs
+
+2. NOTIFICATION SERVICE (notification.service.js)
+   - Creates in-app notifications
+   - Sends notifications to users
+   - Manages notification types and priorities
+   - Links notifications to specific actions/entities
+
+3. AUDIT LOG SERVICE (auditLog.service.js)
+   - Records all system actions
+   - Tracks user activities
+   - Logs IP addresses and user agents
+   - Provides audit trail for compliance
+
+4. EMAIL SERVICE (email.js)
+   - SMTP email sending via Nodemailer
+   - Certificate issuance notifications
+   - Certificate shared notifications
+   - Certificate revocation notifications
+   - OTP email delivery
+   - Request status updates
+   - HTML email templates with branding
+
+5. COLLEGE SERVICE (college.service.js)
+   - Manages institution/college database
+   - Provides college search functionality
+   - Loads Indian colleges from JSON data
+
+6. OTP SERVICE (otp.js)
+   - Generates 6-digit OTP codes
+   - Sends OTP via email
+   - Validates OTP with expiry checking
+
+7. LOGGER SERVICE (logger.js)
+   - Winston-based logging system
+   - File-based logs (error.log, combined.log)
+   - Console logging for development
+   - Morgan HTTP request logging
+   - Log rotation support
+
+8. FILE VALIDATOR (fileValidator.js)
+   - Validates uploaded certificate files
+   - Checks file size limits (10MB)
+   - Validates MIME types (PDF, PNG, JPEG)
+   - Sanitizes file names
+   - Base64 validation
+
+
+======================================================================================
+MIDDLEWARE COMPONENTS
+======================================================================================
+
+1. AUTHENTICATION MIDDLEWARE (auth.js)
+   - JWT token verification
+   - User authentication
+   - Role-based access control (RBAC)
+   - Route protection
+
+2. ERROR HANDLER (errorHandler.js)
+   - Global error handling
+   - 404 Not Found handler
+   - Async error wrapper
+   - Error response formatting
+
+3. RATE LIMITER (rateLimiter.js)
+   - Request rate limiting
+   - Prevents API abuse
+   - Configurable limits per endpoint
+   - IP-based tracking
+
+4. SANITIZE MIDDLEWARE (sanitize.js)
+   - NoSQL injection prevention
+   - Input sanitization
+   - MongoDB operator filtering
+
+5. VALIDATION MIDDLEWARE (validate.js)
+   - Joi schema validation
+   - Request body validation
+   - Query parameter validation
+   - Path parameter validation
+
+
+======================================================================================
+SECURITY FEATURES
+======================================================================================
+
+1. AUTHENTICATION & AUTHORIZATION
+   - JWT tokens with configurable expiry (7 days default)
+   - Password hashing using bcryptjs (10 salt rounds)
+   - Role-based access control (RBAC)
+   - Protected routes requiring authentication
+   - Role-specific route restrictions
+
+2. INPUT VALIDATION & SANITIZATION
+   - Joi schema validation for all inputs
+   - MongoDB injection prevention (mongo-sanitize)
+   - File upload validation (size, type, content)
+   - Email format validation
+   - SQL injection prevention (NoSQL database)
+
+3. NETWORK SECURITY
+   - CORS configuration with whitelist
+   - Helmet.js security headers
+   - Rate limiting (100 requests per 15 minutes)
+   - HTTPS support ready
+   - Cross-origin resource policy
+
+4. DATA SECURITY
+   - Certificate hashing for tamper detection
+   - Blockchain anchoring for immutability
+   - Encrypted data storage
+   - Secure token generation (crypto.randomBytes)
+   - Password strength requirements (min 8 characters)
+
+5. AUDIT & COMPLIANCE
+   - Complete audit trail for all actions
+   - IP address and user agent logging
+   - Access logs for shared certificates
+   - Activity timeline tracking
+   - Revocation reason documentation
+
+6. SESSION MANAGEMENT
+   - JWT-based stateless sessions
+   - Token expiry and refresh
+   - Last login tracking
+   - Account active/inactive status
+
+
+======================================================================================
+DEPLOYMENT & INFRASTRUCTURE
+======================================================================================
+
+DOCKER SETUP
+------------
+The application uses Docker Compose for containerized deployment:
+
+1. MongoDB Container:
+   - Image: mongo:7
+   - Port: 27017
+   - Volume: Persistent data storage
+   - Health checks enabled
+   - Database: innervex
+
+2. Backend Container:
+   - Node.js application
+   - Port: 3001
+   - Environment: Production/Development
+   - Depends on MongoDB
+   - Log volume mounted
+
+3. Frontend Container:
+   - Vite build with Nginx
+   - Port: 5173 (dev), 80 (production)
+   - Static file serving
+   - Reverse proxy configuration
+
+ENVIRONMENT VARIABLES
+--------------------
+Backend (.env):
+- NODE_ENV: Environment (development/production)
+- MONGODB_URI: MongoDB connection string
+- PORT: Server port (default 3001)
+- JWT_SECRET: JWT signing secret
+- JWT_EXPIRES_IN: Token expiry duration (7d)
+- FRONTEND_URL: Frontend URL for CORS
+- SMTP_HOST: Email server host
+- SMTP_PORT: Email server port
+- SMTP_USER: Email account username
+- SMTP_PASS: Email account password
+- SMTP_FROM: Sender email address
+
+Frontend (.env):
+- VITE_API_URL: Backend API URL
+
+
+======================================================================================
+FILE STRUCTURE
+======================================================================================
+
+InnerveX/
+│
+├── backend/                        # Backend Node.js application
+│   ├── Dockerfile                  # Backend Docker configuration
+│   ├── package.json                # Backend dependencies
+│   ├── Procfile                    # Heroku deployment config
+│   ├── server.js                   # Main server entry point
+│   ├── .env                        # Environment variables
+│   │
+│   ├── data/                       # Static data files
+│   │   └── indian-colleges.json    # Indian colleges database
+│   │
+│   ├── middleware/                 # Express middleware
+│   │   ├── auth.js                 # Authentication middleware
+│   │   ├── errorHandler.js         # Error handling
+│   │   ├── rateLimiter.js          # Rate limiting
+│   │   ├── sanitize.js             # Input sanitization
+│   │   └── validate.js             # Request validation
+│   │
+│   ├── models/                     # Mongoose models
+│   │   ├── User.js                 # User model
+│   │   ├── Certificate.js          # Certificate model
+│   │   ├── Request.js              # Request model
+│   │   ├── Share.js                # Share model
+│   │   ├── BlockchainLedger.js     # Blockchain ledger
+│   │   ├── Notification.js         # Notification model
+│   │   └── AuditLog.js             # Audit log model
+│   │
+│   ├── routes/                     # API route handlers
+│   │   ├── auth.routes.js          # Authentication routes
+│   │   ├── user.routes.js          # User management
+│   │   ├── certificate.routes.js   # Certificate operations
+│   │   ├── request.routes.js       # Request management
+│   │   ├── share.routes.js         # Sharing functionality
+│   │   ├── blockchain.routes.js    # Blockchain operations
+│   │   ├── notification.routes.js  # Notifications
+│   │   ├── college.routes.js       # College management
+│   │   ├── otp.routes.js           # OTP operations
+│   │   └── qr.routes.js            # QR code generation
+│   │
+│   ├── services/                   # Business logic services
+│   │   ├── blockchainService.js    # Blockchain simulation
+│   │   ├── notification.service.js # Notification service
+│   │   ├── auditLog.service.js     # Audit logging
+│   │   └── college.service.js      # College service
+│   │
+│   ├── utils/                      # Utility functions
+│   │   ├── email.js                # Email sending
+│   │   ├── otp.js                  # OTP generation/verification
+│   │   ├── logger.js               # Logging utility
+│   │   └── fileValidator.js        # File validation
+│   │
+│   ├── validators/                 # Joi validation schemas
+│   │   ├── auth.validator.js       # Auth validation
+│   │   ├── certificate.validator.js# Certificate validation
+│   │   ├── request.validator.js    # Request validation
+│   │   └── share.validator.js      # Share validation
+│   │
+│   └── logs/                       # Log files (generated)
+│       ├── error.log               # Error logs
+│       └── combined.log            # All logs
+│
+├── frontend/                       # Frontend React application
+│   ├── Dockerfile                  # Frontend Docker configuration
+│   ├── nginx.conf                  # Nginx configuration
+│   ├── package.json                # Frontend dependencies
+│   ├── vite.config.js              # Vite build configuration
+│   ├── tailwind.config.js          # Tailwind CSS config
+│   ├── postcss.config.js           # PostCSS config
+│   ├── index.html                  # Entry HTML
+│   │
+│   └── src/                        # Source code
+│       ├── App.jsx                 # Main App component
+│       ├── main.jsx                # Entry point
+│       ├── index.css               # Global styles
+│       │
+│       ├── components/             # Reusable components
+│       │   ├── Layout.jsx          # Page layout
+│       │   ├── ActivityTimeline.jsx# Activity timeline
+│       │   ├── CertificateBalance.jsx# Certificate stats
+│       │   └── ui/                 # UI components
+│       │       ├── button.jsx      # Button component
+│       │       ├── card.jsx        # Card component
+│       │       ├── input.jsx       # Input component
+│       │       ├── toast.jsx       # Toast notifications
+│       │       └── ... (other UI components)
+│       │
+│       ├── lib/                    # Core application logic
+│       │   ├── api.js              # API client
+│       │   ├── config.js           # Configuration
+│       │   ├── store.js            # Zustand state management
+│       │   └── utils.js            # Utility functions
+│       │
+│       └── pages/                  # Page components
+│           ├── LandingPage.jsx     # Landing page
+│           ├── Login.jsx           # Login page
+│           ├── Signup.jsx          # Signup page
+│           ├── HomeDashboard.jsx   # User dashboard
+│           ├── MyCertificates.jsx  # Certificate list
+│           ├── MyRequests.jsx      # Request list
+│           ├── SharedCertificates.jsx# Shared certificates
+│           ├── SharedView.jsx      # Shared certificate view
+│           ├── CertificateDetail.jsx# Certificate details
+│           ├── IssueCertificate.jsx# Issue certificate
+│           ├── RequestCertificateFlow.jsx# Request flow
+│           ├── SendCertificateFlow.jsx# Share flow
+│           ├── InstitutionMode.jsx # Institution dashboard
+│           ├── ApproveRequest.jsx  # Request approval
+│           ├── CertificateRevocation.jsx# Revocation
+│           ├── CertificateLifecycle.jsx# Lifecycle view
+│           ├── PublicVerification.jsx# Public verification
+│           ├── DualConsent.jsx     # Dual consent
+│           ├── UserReputation.jsx  # Reputation system
+│           ├── FraudManagement.jsx # Fraud detection
+│           ├── Profile.jsx         # User profile
+│           ├── Settings.jsx        # Settings
+│           └── ... (other pages)
+│
+├── docker-compose.yml              # Docker Compose configuration
+├── package.json                    # Root package.json
+├── test-api-endpoints.js           # API testing script
+├── test-backend.js                 # Backend testing script
+└── users.json                      # Test user data
+
+
+======================================================================================
+USE CASES AND WORKFLOWS
+======================================================================================
+
+1. CERTIFICATE ISSUANCE WORKFLOW
+   a) Institution logs in
+   b) Navigates to "Issue Certificate" page
+   c) Fills in recipient details (name, email)
+   d) Uploads certificate file (PDF/Image)
+   e) Adds metadata (expiry date, achievement details)
+   f) Submits the form
+   g) System generates certificate hash
+   h) Certificate is anchored to blockchain
+   i) Email notification sent to recipient
+   j) Certificate appears in institution's "Issued" list
+   k) Certificate appears in recipient's "My Certificates"
+
+2. CERTIFICATE REQUEST WORKFLOW
+   a) Individual logs in
+   b) Navigates to "Request Certificate" page
+   c) Fills in institution name and certificate details
+   d) Submits the request
+   e) Request appears in institution's "Pending Requests"
+   f) Institution reviews the request
+   g) Institution approves or rejects with reason
+   h) Email notification sent to requester
+   i) If approved, certificate is created and issued
+   j) If rejected, request is marked as rejected
+
+3. CERTIFICATE SHARING WORKFLOW
+   a) Certificate owner logs in
+   b) Navigates to specific certificate
+   c) Clicks "Share Certificate" button
+   d) Enters recipient email address
+   e) Optionally sets expiry date for share link
+   f) Submits the share request
+   g) System generates unique share token
+   h) Email sent to recipient with share link
+   i) Recipient clicks link (no login required)
+   j) Recipient views certificate details
+   k) Access is logged with IP and timestamp
+
+4. CERTIFICATE VERIFICATION WORKFLOW
+   a) Verifier visits public verification page
+   b) Enters certificate ID or scans QR code
+   c) System looks up certificate
+   d) System validates:
+      - Certificate exists
+      - Not revoked
+      - Not expired
+      - Hash matches
+      - Blockchain record exists
+   e) Verification result displayed with:
+      - Issuer details
+      - Recipient details
+      - Issue date
+      - Blockchain transaction
+      - Status badge
+
+5. CERTIFICATE REVOCATION WORKFLOW
+   a) Institution logs in
+   b) Navigates to certificate details
+   c) Clicks "Revoke Certificate" button
+   d) Enters revocation reason
+   e) Confirms revocation
+   f) Certificate status changed to "revoked"
+   g) Revocation recorded on blockchain
+   h) Email notification sent to recipient
+   i) Certificate marked as invalid in all verifications
+
+
+======================================================================================
+FUTURE ENHANCEMENTS & ROADMAP
+======================================================================================
+
+1. REAL BLOCKCHAIN INTEGRATION
+   - Integration with actual blockchain networks (Polygon, Ethereum)
+   - Smart contract deployment for certificate management
+   - Real wallet integration (MetaMask, WalletConnect)
+   - Gas fee handling and optimization
+   - Multi-chain support
+
+2. ADVANCED FEATURES
+   - Multi-signature certificate issuance (dual consent)
+   - Batch certificate issuance
+   - Certificate templates
+   - Certificate versioning
+   - Certificate transfer/ownership change
+   - Endorsements and recommendations
+   - Skill verification and badges
+
+3. AI-POWERED FEATURES
+   - Fraud detection using machine learning
+   - Certificate authenticity scoring
+   - Anomaly detection in issuance patterns
+   - Automated certificate verification
+   - OCR for certificate data extraction
+
+4. INTEGRATION & APIS
+   - Integration with educational institutions' systems
+   - HR system integration for employers
+   - Government ID verification integration
+   - LinkedIn profile integration
+   - API marketplace for third-party verifications
+
+5. MOBILE APPLICATIONS
+   - Native iOS app
+   - Native Android app
+   - Mobile wallet for certificates
+   - Offline verification support
+   - Push notifications
+
+6. COMPLIANCE & STANDARDS
+   - ISO/IEC 27001 compliance
+   - GDPR compliance
+   - W3C Verifiable Credentials standard
+   - OpenBadges 3.0 support
+   - European Blockchain Services Infrastructure (EBSI)
+
+7. USER EXPERIENCE
+   - Multi-language support
+   - Accessibility improvements (WCAG 2.1)
+   - Progressive Web App (PWA)
+   - Print-ready certificate views
+   - Certificate portfolio builder
+
+
+======================================================================================
+TESTING & QUALITY ASSURANCE
+======================================================================================
+
+TESTING FILES
+-------------
+- test-api-endpoints.js: API endpoint testing
+- test-backend.js: Backend functionality testing
+- users.json: Test user data for development
+
+TESTING STRATEGY
+----------------
+1. Unit Testing:
+   - Model validation
+   - Service functions
+   - Utility functions
+   - Middleware logic
+
+2. Integration Testing:
+   - API endpoints
+   - Database operations
+   - Email sending
+   - Blockchain interactions
+
+3. Security Testing:
+   - Authentication bypass attempts
+   - SQL/NoSQL injection
+   - XSS attacks
+   - CSRF protection
+   - Rate limit testing
+
+4. Performance Testing:
+   - Load testing
+   - Stress testing
+   - Database query optimization
+   - API response times
+
+
+======================================================================================
+DEVELOPMENT GUIDELINES
+======================================================================================
+
+CODE STYLE
+----------
+- ES6+ JavaScript with ES Modules
+- Async/await for asynchronous operations
+- Consistent error handling with try-catch
+- Descriptive variable and function names
+- Comments for complex logic
+- JSDoc documentation for functions
+
+GIT WORKFLOW
+------------
+- Main branch: main
+- Development branch: dev
+- Feature branches: feature/feature-name
+- Bug fix branches: fix/bug-description
+- Commit message format: type(scope): description
+
+BEST PRACTICES
+--------------
+1. Always validate user input
+2. Hash sensitive data before storage
+3. Use environment variables for secrets
+4. Log all important actions
+5. Implement proper error handling
+6. Write reusable components
+7. Keep functions small and focused
+8. Use middleware for cross-cutting concerns
+9. Implement pagination for large datasets
+10. Cache frequently accessed data
+
+
+======================================================================================
+DEPENDENCIES SUMMARY
+======================================================================================
+
+BACKEND DEPENDENCIES
+--------------------
+Production:
+- express: Web framework
+- mongoose: MongoDB ODM
+- jsonwebtoken: JWT authentication
+- bcryptjs: Password hashing
+- dotenv: Environment variables
+- cors: Cross-origin resource sharing
+- helmet: Security headers
+- joi: Input validation
+- nodemailer: Email sending
+- qrcode: QR code generation
+- uuid: Unique ID generation
+- express-rate-limit: Rate limiting
+- express-mongo-sanitize: NoSQL injection prevention
+- compression: Response compression
+- morgan: HTTP logger
+- body-parser: Request body parsing
+
+FRONTEND DEPENDENCIES
+--------------------
+Production:
+- react: UI library
+- react-dom: React DOM renderer
+- react-router-dom: Routing
+- zustand: State management
+- tailwindcss: Utility-first CSS
+- framer-motion: Animation library
+- lucide-react: Icon library
+- @radix-ui/react-slot: Headless UI components
+- clsx: Conditional classnames
+- tailwind-merge: Tailwind class merging
+
+Development:
+- vite: Build tool
+- @vitejs/plugin-react: Vite React plugin
+- eslint: JavaScript linter
+- autoprefixer: CSS autoprefixer
+- postcss: CSS processor
+
+
+======================================================================================
+PROJECT METRICS
+======================================================================================
+
+CODE STATISTICS (Approximate)
+------------------------------
+- Total Files: 100+
+- Backend Files: 40+
+- Frontend Files: 60+
+- Lines of Code: 15,000+
+- API Endpoints: 50+
+- Database Models: 7
+- React Components: 50+
+- Pages/Routes: 30+
+
+FEATURES IMPLEMENTED
+--------------------
+✅ User authentication and authorization
+✅ Multi-role user system (4 roles)
+✅ Certificate issuance with file upload
+✅ Certificate verification (public)
+✅ Certificate sharing with tokens
+✅ Certificate revocation
+✅ Certificate request system
+✅ Blockchain simulation and anchoring
+✅ QR code generation
+✅ Email notifications
+✅ In-app notifications
+✅ Audit logging
+✅ Rate limiting
+✅ Security headers
+✅ Input validation
+✅ Docker deployment
+✅ Responsive UI
+✅ Dark mode support
+✅ Activity timeline
+✅ Trust registry
+
+
+======================================================================================
+CONTACT & SUPPORT
+======================================================================================
+
+PROJECT INFORMATION
+-------------------
+Project Name: InnerveX DigiBank
+Version: 1.0.0
+Status: Active Development
+License: Proprietary
+
+REPOSITORY
+----------
+Owner: Sellamuthu2007
+Repository: InnerveX
+Branch: senthamizh
+Default Branch: main
+
+TECHNICAL SUPPORT
+-----------------
+For technical issues, feature requests, or bug reports:
+1. Check existing documentation
+2. Review error logs (backend/logs/)
+3. Test API endpoints using test scripts
+4. Check MongoDB connection and database state
+5. Verify environment variables are set correctly
+
+
+======================================================================================
+CONCLUSION
+======================================================================================
+
+InnerveX DigiBank is a comprehensive, modern, and secure digital certificate 
+management platform that bridges the gap between traditional paper certificates 
+and blockchain-based digital credentials. 
+
+The platform provides a complete ecosystem for certificate lifecycle management, 
+from issuance to verification, with features like blockchain anchoring, secure 
+sharing, public verification, and comprehensive audit trails.
+
+Built with modern web technologies (React, Node.js, MongoDB) and containerized 
+with Docker, the platform is scalable, maintainable, and ready for production 
+deployment.
+
+The simulated blockchain layer provides the foundation for future integration 
+with real blockchain networks, making it a forward-compatible solution for 
+digital credential management.
+
+======================================================================================
+                            END OF PROJECT DESCRIPTION
+======================================================================================
