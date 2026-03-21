@@ -10,6 +10,7 @@ import { sendCertificateIssuedEmail, sendCertificateRevokedEmail } from '../util
 import { createAuditLog } from '../services/auditLog.service.js';
 import { createNotification } from '../services/notification.service.js';
 import { logger } from '../utils/logger.js';
+import blockchainService from '../services/blockchainService.js';
 
 const router = express.Router();
 
@@ -88,9 +89,32 @@ router.post('/', protect, restrictTo('institution'), validate(createCertificateS
         recipientEmail 
     });
 
+    // Validate wallet address format (must be 0x + 40 hex chars)
+    const isValidWallet = req.user.walletId && /^0x[a-fA-F0-9]{40}$/.test(req.user.walletId);
+    const walletAddress = isValidWallet ? req.user.walletId : null;
+
+    // Anchor certificate to blockchain (async, don't wait)
+    blockchainService.anchorCertificate(cert._id.toString(), cert, walletAddress)
+        .then(() => {
+            logger.info('Certificate anchored to blockchain', { certificateId: cert._id });
+        })
+        .catch(err => {
+            logger.error('Failed to anchor certificate to blockchain', { 
+                certificateId: cert._id, 
+                error: err.message 
+            });
+        });
+
+    // Get blockchain info (if already anchored)
+    const blockchainInfo = await blockchainService.getBlockchainInfo(cert._id.toString());
+
     res.status(201).json({ 
         message: 'Certificate issued successfully', 
-        certificate: cert 
+        certificate: cert,
+        blockchain: blockchainInfo || { 
+            anchored: false, 
+            message: 'Anchoring in progress...' 
+        }
     });
 }));
 
@@ -109,8 +133,19 @@ router.get('/my', protect, asyncHandler(async (req, res) => {
 
     const total = await Certificate.countDocuments(query);
 
+    // Add blockchain info to each certificate
+    const certificatesWithBlockchain = await Promise.all(
+        certificates.map(async (cert) => {
+            const blockchainInfo = await blockchainService.getBlockchainInfo(cert._id.toString());
+            return {
+                ...cert,
+                blockchain: blockchainInfo
+            };
+        })
+    );
+
     res.json({ 
-        certificates, 
+        certificates: certificatesWithBlockchain, 
         total,
         limit: parseInt(limit),
         skip: parseInt(skip)
@@ -132,8 +167,19 @@ router.get('/issued', protect, restrictTo('institution'), asyncHandler(async (re
 
     const total = await Certificate.countDocuments(query);
 
+    // Add blockchain info to each certificate
+    const certificatesWithBlockchain = await Promise.all(
+        certificates.map(async (cert) => {
+            const blockchainInfo = await blockchainService.getBlockchainInfo(cert._id.toString());
+            return {
+                ...cert,
+                blockchain: blockchainInfo
+            };
+        })
+    );
+
     res.json({ 
-        certificates, 
+        certificates: certificatesWithBlockchain, 
         total,
         limit: parseInt(limit),
         skip: parseInt(skip)
@@ -151,12 +197,21 @@ router.get('/:id', protect, asyncHandler(async (req, res) => {
     }
 
     // Check if user has permission to view
-    const canView = 
-        cert.recipientEmail === req.user.email ||
-        cert.issuerId?.toString() === req.userId ||
-        ['employer', 'regulatory'].includes(req.userRole);
+    const isRecipient = cert.recipientEmail === req.user.email;
+    const isIssuer = cert.issuerId?.toString() === req.userId || cert.issuerId?._id?.toString() === req.userId;
+    const isPrivilegedRole = ['institution', 'employer', 'regulatory'].includes(req.userRole);
+    
+    const canView = isRecipient || isIssuer || isPrivilegedRole;
 
     if (!canView) {
+        logger.warn('Certificate access denied', {
+            certificateId: cert._id,
+            userId: req.userId,
+            userRole: req.userRole,
+            issuerId: cert.issuerId?.toString(),
+            recipientEmail: cert.recipientEmail,
+            userEmail: req.user.email
+        });
         return res.status(403).json({ message: 'You do not have permission to view this certificate' });
     }
 
@@ -170,7 +225,13 @@ router.get('/:id', protect, asyncHandler(async (req, res) => {
         userAgent: req.get('user-agent')
     });
 
-    res.json({ certificate: cert });
+    // Get blockchain info
+    const blockchainInfo = await blockchainService.getBlockchainInfo(cert._id.toString());
+
+    res.json({ 
+        certificate: cert,
+        blockchain: blockchainInfo
+    });
 }));
 
 // PUT /api/v1/certificates/:id/revoke - Revoke certificate
@@ -213,6 +274,18 @@ router.put('/:id/revoke', protect, restrictTo('institution'), asyncHandler(async
             relatedResourceType: 'certificate',
             relatedResourceId: cert._id
         });
+    }
+
+    // Revoke on blockchain (if anchored)
+    try {
+        await blockchainService.revokeCertificateOnChain(cert._id.toString());
+        logger.info('Certificate revoked on blockchain', { certificateId: cert._id });
+    } catch (blockchainError) {
+        logger.error('Failed to revoke on blockchain', { 
+            certificateId: cert._id, 
+            error: blockchainError.message 
+        });
+        // Continue with revocation even if blockchain fails
     }
 
     // Create audit log

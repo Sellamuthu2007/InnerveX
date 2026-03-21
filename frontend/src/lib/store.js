@@ -214,15 +214,15 @@ export const useStore = create(
 
       shareCertificate: async (shareData) => {
         const token = get().token;
-        if (!token) return;
+        if (!token) return null;
         try {
-          await api.createShare(shareData, token);
+          const result = await api.createShare(shareData, token);
           get().addToast('Certificate shared successfully', 'success');
-          return true;
+          return result; // Return full result including shareUrl
         } catch (e) {
           console.error('shareCertificate error:', e);
           get().addToast(e.message || 'Failed to share certificate', 'error');
-          return false;
+          return null;
         }
       },
 

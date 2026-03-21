@@ -18,6 +18,7 @@ import IssueCertificate from './pages/IssueCertificate';
 import ApproveRequest from './pages/ApproveRequest';
 import VerifyCertificateRequest from './pages/VerifyCertificateRequest';
 import MyRequests from './pages/MyRequests';
+import MyCertificates from './pages/MyCertificates';
 import CertificateDebug from './pages/CertificateDebug';
 
 // Placeholder or future imports
@@ -34,6 +35,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import SharedCertificates from './pages/SharedCertificates';
+import SharedView from './pages/SharedView';
 
 function App() {
   const theme = useStore(state => state.theme);
@@ -57,7 +59,9 @@ function App() {
         <Route path="/register" element={<IndividualRegistration />} />
         <Route path="/dashboard" element={<HomeDashboard />} />
         <Route path="/my-requests" element={<MyRequests />} />
+        <Route path="/my-certificates" element={<MyCertificates />} />
         <Route path="/shared-certificates" element={<SharedCertificates />} />
+        <Route path="/shared-view/:token" element={<SharedView />} />
         <Route path="/certificate-debug" element={<CertificateDebug />} />
         <Route path="/certificate/:id" element={<CertificateDetail />} />
         

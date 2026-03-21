@@ -1,9 +1,29 @@
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// CRITICAL: Load environment variables FIRST before any other imports
+// This ensures .env is loaded before email.js and other modules that need env vars
+dotenv.config({ path: join(__dirname, '.env') });
+
+console.log('========== SERVER STARTUP DEBUG ==========');
+console.log('Current directory:', __dirname);
+console.log('.env path:', join(__dirname, '.env'));
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'NOT SET');
+console.log('SMTP_HOST:', process.env.SMTP_HOST);
+console.log('SMTP_USER:', process.env.SMTP_USER);
+console.log('==========================================\n');
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 
 // Import middleware
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -20,9 +40,9 @@ import shareRoutes from './routes/share.routes.js';
 import otpRoutes from './routes/otp.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import collegeRoutes from './routes/college.routes.js';
+import blockchainRoutes from './routes/blockchain.routes.js';
+import qrRoutes from './routes/qr.routes.js';
 import { protect } from './middleware/auth.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -127,6 +147,8 @@ app.use('/api/v1/shares', apiLimiter, shareRoutes);
 app.use('/api/v1/otp', otpRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/colleges', collegeRoutes);
+app.use('/api/v1/blockchain', blockchainRoutes);
+app.use('/api/v1/qr', qrRoutes);
 
 // ── Legacy Routes (for backward compatibility) ────────────────────
 // These will be deprecated in future versions
